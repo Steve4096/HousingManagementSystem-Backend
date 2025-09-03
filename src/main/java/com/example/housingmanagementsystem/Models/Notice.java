@@ -13,7 +13,6 @@ import lombok.Setter;
 @Setter
 @Table(name="notices")
 public class Notice extends Auditable {
-    @OneToOne
-    private User userId;
+
 
 }
