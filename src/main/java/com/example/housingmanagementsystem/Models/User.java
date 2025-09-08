@@ -19,6 +19,8 @@ import java.time.LocalDateTime;
 @Table(name = "users")
 @EqualsAndHashCode(onlyExplicitlyIncluded = true,callSuper = true)
 @ToString(onlyExplicitlyIncluded = true)
+@AllArgsConstructor
+@Builder
 public class User extends Auditable {
 
     @ToString.Include

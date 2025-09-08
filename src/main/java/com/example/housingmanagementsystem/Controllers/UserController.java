@@ -15,19 +15,17 @@ import java.util.List;
 @RequestMapping("/api/users")
 public class UserController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+
+    public UserController(UserService userService){
+        this.userService=userService;
+    }
 
    // @PostMapping("/registerUser")
 
     @GetMapping("/fetchAllUsers")
     public ResponseEntity<List<UserResponseDTO>> fetchAllUsers(){
-        List<UserResponseDTO> allUsers=userService.fetchAllUsers()
-                .stream()
-                .map(user -> new UserRegistrationDTO(user.getIdNumber(), user.getFullName(), user.getEmailAddress(), user.getPhoneNumber(),user.getRole()))
-                .toList();
-
-        return ResponseEntity.ok().body(allUsers);
+        return ResponseEntity.ok().body(userService.fetchAllUsers());
     }
 
 

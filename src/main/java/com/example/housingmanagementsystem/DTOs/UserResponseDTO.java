@@ -12,7 +12,7 @@ public class UserResponseDTO {
     private String idNumber;
     private String fullName;
     private String emailAddress;
-    private String userName;
+    //private String userName;
     private String phoneNumber;
     private Role role;
 }
