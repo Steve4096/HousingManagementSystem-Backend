@@ -9,6 +9,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
+import org.hibernate.envers.Audited;
 
 import java.time.LocalDateTime;
 
@@ -21,6 +22,7 @@ import java.time.LocalDateTime;
 @ToString(onlyExplicitlyIncluded = true)
 @AllArgsConstructor
 @Builder
+@Audited
 public class User extends Auditable {
 
     @ToString.Include

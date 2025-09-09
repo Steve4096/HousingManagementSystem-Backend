@@ -2,15 +2,16 @@ package com.example.housingmanagementsystem.Services;
 
 import com.example.housingmanagementsystem.DTOs.UserRegistrationDTO;
 import com.example.housingmanagementsystem.DTOs.UserResponseDTO;
+import com.example.housingmanagementsystem.DTOs.UserUpdateDTO;
 import com.example.housingmanagementsystem.Mappers.UserMapper;
 import com.example.housingmanagementsystem.Models.User;
 import com.example.housingmanagementsystem.Repositories.UserRepository;
 import com.example.housingmanagementsystem.UtilityClasses.PasswordGenerator;
 import com.example.housingmanagementsystem.UtilityClasses.Role;
 import com.example.housingmanagementsystem.UtilityClasses.UserStatus;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -34,30 +35,6 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    /*public User mapToUser(UserRegistrationDTO registrationDTO){
-        User newUser=new User();
-        newUser.setIdNumber(registrationDTO.getIdNumber());
-        newUser.setFullName(registrationDTO.getFullName());
-        newUser.setUserName(registrationDTO.getUserName());
-        newUser.setEmailAddress(registrationDTO.getEmailAddress());
-        newUser.setPhoneNumber(registrationDTO.getPhoneNumber());
-        return newUser;
-    }*/
-
-   /* public User registerUser(UserRegistrationDTO userDTO){
-        User newUser=new User();
-        newUser=mapToUser(userDTO);
-        newUser.setRole(userDTO.getRole());
-        return saveUser(newUser);
-    }*/
-
-    /*public User registerTenant(UserRegistrationDTO tenantDTO){
-        User newTenant=new User();
-        newTenant=mapToUser(tenantDTO);
-        newTenant.setRole(Role.TENANT);
-        return saveUser(newTenant);
-    }*/
-
     public UserResponseDTO registerUser(UserRegistrationDTO userDTO){
         User user=userMapper.toEntity(userDTO);
         User savedUser=saveUser(user);
@@ -75,9 +52,19 @@ public class UserService {
         return userMapper.toDTO(savedTenant);
     }
 
-    /*public List<User> fetchAllUsers(){
-       return userRepository.findAll();
-    }*/
+    @Transactional
+    public UserResponseDTO updateUserDetails(Long id,UserUpdateDTO updateDTO){
+        User user=userRepository.findById(id)
+                .orElseThrow(()->new RuntimeException("User not found"));
+
+        //Mapstruct tracks what fields have changed
+        userMapper.updateUserfromDTO(updateDTO,user);
+
+        //Save makes/triggers envers to log the changed fields as well as values
+        User savedUser=userRepository.save(user);
+
+        return userMapper.toDTO(savedUser);
+    }
 
     public List<UserResponseDTO> fetchAllUsers(){
         return userRepository.findAll()
