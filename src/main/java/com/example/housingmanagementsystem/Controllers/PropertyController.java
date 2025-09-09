@@ -1,0 +1,47 @@
+package com.example.housingmanagementsystem.Controllers;
+
+import com.example.housingmanagementsystem.DTOs.PropertyRegistrationDTO;
+import com.example.housingmanagementsystem.DTOs.PropertyResponseDTO;
+import com.example.housingmanagementsystem.DTOs.PropertyUpdateDTO;
+import com.example.housingmanagementsystem.Services.PropertyService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/properties")
+public class PropertyController {
+
+    private final PropertyService propertyService;
+
+    public PropertyController(PropertyService propertyService){
+        this.propertyService=propertyService;
+    }
+
+    @PostMapping
+    public ResponseEntity<PropertyResponseDTO> createProperty(@Valid @RequestBody PropertyRegistrationDTO propertyRegistrationDTO){
+        return ResponseEntity.status(HttpStatus.CREATED).body(propertyService.createProperty(propertyRegistrationDTO));
+    }
+
+    @PatchMapping("{id}")
+    public ResponseEntity<PropertyResponseDTO> updateExistingProperty(@PathVariable Long id,@Valid @RequestBody PropertyUpdateDTO propertyUpdateDTO){
+        return ResponseEntity.ok().body(propertyService.updateExistingPropertyDetails(id,propertyUpdateDTO));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<PropertyResponseDTO>> fetchExistingProperties(){
+        return ResponseEntity.ok().body(propertyService.fetchExistingProperties());
+    }
+
+    @DeleteMapping("{id}")
+    public ResponseEntity<?> deleteProperty(@PathVariable Long id){
+        boolean deleted= propertyService.deleteProperty(id);
+        if(deleted){
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.notFound().build();
+    }
+}

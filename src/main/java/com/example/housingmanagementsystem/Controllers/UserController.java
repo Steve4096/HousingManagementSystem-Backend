@@ -26,12 +26,14 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<UserResponseDTO> registerUser(@Valid @RequestBody UserRegistrationDTO registrationDTO){
-        return ResponseEntity.ok().body(userService.registerUser(registrationDTO));
+       // return ResponseEntity.ok().body(userService.registerUser(registrationDTO));
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.registerUser(registrationDTO));
     }
 
     @PostMapping("/tenant")
     public ResponseEntity<UserResponseDTO> registerTenant(@Valid @RequestBody UserRegistrationDTO registrationDTO){
-        return ResponseEntity.ok().body(userService.registerTenant(registrationDTO));
+        //return ResponseEntity.ok().body(userService.registerTenant(registrationDTO));
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.registerTenant(registrationDTO));
     }
 
     @PatchMapping("/{id}")

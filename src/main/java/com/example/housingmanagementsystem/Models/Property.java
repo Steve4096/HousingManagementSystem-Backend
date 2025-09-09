@@ -7,9 +7,12 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.hibernate.envers.Audited;
 
 import java.math.BigDecimal;
 
@@ -19,6 +22,8 @@ import java.math.BigDecimal;
 @EqualsAndHashCode(callSuper = true,onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
 @NoArgsConstructor
+@AllArgsConstructor
+@Audited
 public class Property extends Auditable {
 
     @ToString.Include
@@ -33,5 +38,6 @@ public class Property extends Auditable {
 
     @NotNull(message = "Rent amount is required")
     @Column(nullable = false)
+    @DecimalMin(value = "8500", message = "The minimum rent amount is 8500")
     private BigDecimal rentAmount;
 }
