@@ -7,22 +7,33 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception{
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity,JWTAuthenticationFilter jwtAuthenticationFilter) throws Exception{
         httpSecurity
                 .csrf(csrf->csrf.disable())
+
+                //Determines which methods are open vs protected
                 .authorizeHttpRequests(auth->auth
-                        .requestMatchers("/api/auth/**").permitAll() //login,register
+
+                        //Open URLs
+                        .requestMatchers("/api/auth/**").permitAll() //login,refresh
+
                         .anyRequest().authenticated() //everything else needs a token
                         )
+
+
                 .sessionManagement(session ->session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS) //JWT,no sessions
-                        );
-        //TODO: Add JWTFilter here
+                        )
+
+                //JWT filter
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
 
         return httpSecurity.build();
     }

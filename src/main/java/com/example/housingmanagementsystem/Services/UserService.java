@@ -52,6 +52,10 @@ public class UserService {
         return userMapper.toDTO(savedTenant);
     }
 
+    //Load user details by email
+
+    //On user logout
+
     @Transactional
     public UserResponseDTO updateUserDetails(Long id,UserUpdateDTO updateDTO){
         User user=userRepository.findById(id)
