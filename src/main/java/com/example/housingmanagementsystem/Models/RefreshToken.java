@@ -3,6 +3,7 @@ package com.example.housingmanagementsystem.Models;
 import com.example.housingmanagementsystem.Common.Auditable;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.Instant;
 
@@ -24,6 +25,8 @@ public class RefreshToken extends Auditable {
     @ManyToOne(fetch = FetchType.LAZY,optional = false)
     @JoinColumn(referencedColumnName = "id",nullable = false)
     private User user;
+
+    private UserDetails userDetails;
 
     @Column(nullable = false)
     private boolean isRevoked=false;

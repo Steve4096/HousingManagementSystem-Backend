@@ -5,6 +5,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -15,6 +16,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
+@Getter
 public class JWTUtil {
 
     private final JWTProperties jwtProperties;
@@ -27,17 +29,19 @@ public class JWTUtil {
         this.secretKey= Keys.hmacShaKeyFor(jwtProperties.getSecretKey().getBytes(StandardCharsets.UTF_8));
     }
 
+    //Central method that creates JWTs
     private String createToken(Map<String,Object> claims,String subject,long expiration){
-        return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(subject)
+        return Jwts.builder() //Builds the token step by step
+                .setClaims(claims) //Accepts extra information such as roles
+                .setSubject(subject) //Sets the username/who the token belongs to
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis()+expiration))
-                .signWith(secretKey,SignatureAlgorithm.HS256)
-                .compact();
+                .signWith(secretKey,SignatureAlgorithm.HS256) //sign the token using HMAC-SHA256 and your secret key. Signing means anyone who changes the token later will fail verification.
+                .compact(); //Converts the token generated into a string
     }
 
     //Generate an access token with custom claims e.g roles
+    //Included roles so that the frontend can also know user roles and know which window to display
     public String generateAccessToken(UserDetails userDetails){
         Map<String,Object> claims=new HashMap<>();
 
@@ -47,6 +51,11 @@ public class JWTUtil {
                 .collect(Collectors.toList()));
 
         return createToken(claims,userDetails.getUsername(), jwtProperties.getAccessTokenExpiration());
+    }
+
+    //Generate a refresh token(usually no roles needed)
+    public String generateRefreshToken(UserDetails userDetails) {
+        return createToken(Collections.emptyMap(), userDetails.getUsername(), jwtProperties.getRefreshTokenExpiration());
     }
 
     public String extractUsername(String token){
@@ -72,10 +81,10 @@ public class JWTUtil {
     }
 
     private Claims extractAllClaims(String token){
-        return Jwts.parserBuilder()
-                .setSigningKey(secretKey)
+        return Jwts.parserBuilder() //Gets a parser that understands my tokens
+                .setSigningKey(secretKey) //Tells the parser which key to use in verifying the signature
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseClaimsJws(token) //Verifies token integrity and signature
+                .getBody(); //Used together with getSubject to get who the token belongs to
     }
 }

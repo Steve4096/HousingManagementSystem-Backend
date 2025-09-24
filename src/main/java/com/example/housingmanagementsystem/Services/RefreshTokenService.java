@@ -1,9 +1,12 @@
 package com.example.housingmanagementsystem.Services;
 
+import com.example.housingmanagementsystem.Configs.JWTProperties;
 import com.example.housingmanagementsystem.Exceptions.NotFoundException;
 import com.example.housingmanagementsystem.Models.RefreshToken;
 import com.example.housingmanagementsystem.Models.User;
 import com.example.housingmanagementsystem.Repositories.RefreshTokenRepository;
+import com.example.housingmanagementsystem.UtilityClasses.JWTUtil;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -13,9 +16,11 @@ import java.util.UUID;
 public class RefreshTokenService {
 
     private final RefreshTokenRepository refreshTokenRepository;
+    private final JWTUtil jwtUtil;
 
-    public RefreshTokenService(RefreshTokenRepository refreshTokenRepository){
+    public RefreshTokenService(RefreshTokenRepository refreshTokenRepository, JWTUtil jwtUtil){
         this.refreshTokenRepository=refreshTokenRepository;
+        this.jwtUtil=jwtUtil;
     }
 
     public RefreshToken createRefreshToken(User user){
@@ -26,6 +31,19 @@ public class RefreshTokenService {
                 .build();
 
         return refreshTokenRepository.save(refreshToken);
+    }
+
+    public String createRefreshToken(UserDetails userDetails){
+        String token= jwtUtil.generateRefreshToken(userDetails);
+
+        RefreshToken refreshToken=new RefreshToken();
+        refreshToken.setToken(token);
+        refreshToken.setUserDetails(userDetails.getUsername());
+        refreshToken.setExpiryDate(Instant.now().plusMillis(jwtUtil.getJwtProperties().getRefreshTokenExpiration()));
+
+        refreshTokenRepository.save(token);
+
+        return token;
     }
 
     public boolean validateRefreshToken(String token){

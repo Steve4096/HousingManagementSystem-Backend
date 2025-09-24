@@ -42,7 +42,7 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<List<UserResponseDTO>> fetchAllUsers(){
+    public ResponseEntity<List<UserResponseDTO>> fetchAll(){
         return ResponseEntity.ok().body(userService.fetchAllUsers());
     }
 

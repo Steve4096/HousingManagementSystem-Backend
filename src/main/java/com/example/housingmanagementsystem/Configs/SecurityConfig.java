@@ -26,8 +26,10 @@ public class SecurityConfig {
                         .anyRequest().authenticated() //everything else needs a token
                         )
 
-
+                //Tells spring security not to create or use any HTTP sessions
                 .sessionManagement(session ->session
+
+                        //STATELESS means each request is authenticated independently
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS) //JWT,no sessions
                         )
 
