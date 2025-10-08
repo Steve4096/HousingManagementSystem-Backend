@@ -22,7 +22,7 @@ public class NoticeController {
         this.noticeService = noticeService;
     }
 
-    @PostMapping("/create")
+    /*@PostMapping("/create")
     public ResponseEntity<NoticeResponseDTO> createNotice(@Valid @RequestBody NoticeFillingDTO noticeFillingDTO) {
         NoticeResponseDTO noticeResponseDTO = noticeService.saveNotice(noticeFillingDTO);
 
@@ -30,7 +30,7 @@ public class NoticeController {
         URI location = ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/notices/{id}").buildAndExpand(noticeResponseDTO.getUser()).toUri();
 
         return ResponseEntity.created(location).body(noticeResponseDTO);
-    }
+    }*/
 
     @GetMapping
     public ResponseEntity<List<NoticeResponseDTO>> fetchAllNotices(){

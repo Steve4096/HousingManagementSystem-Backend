@@ -1,21 +1,20 @@
 package com.example.housingmanagementsystem.Controllers;
 
+import com.example.housingmanagementsystem.DTOs.TenantRegistrationDTO;
 import com.example.housingmanagementsystem.DTOs.UserRegistrationDTO;
 import com.example.housingmanagementsystem.DTOs.UserResponseDTO;
 import com.example.housingmanagementsystem.DTOs.UserUpdateDTO;
-import com.example.housingmanagementsystem.Models.User;
 import com.example.housingmanagementsystem.Services.UserService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/user")
 public class UserController {
 
     private final UserService userService;
@@ -24,14 +23,15 @@ public class UserController {
         this.userService=userService;
     }
 
-    @PostMapping
+    //@PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/registerUser")
     public ResponseEntity<UserResponseDTO> registerUser(@Valid @RequestBody UserRegistrationDTO registrationDTO){
        // return ResponseEntity.ok().body(userService.registerUser(registrationDTO));
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.registerUser(registrationDTO));
     }
 
-    @PostMapping("/tenant")
-    public ResponseEntity<UserResponseDTO> registerTenant(@Valid @RequestBody UserRegistrationDTO registrationDTO){
+    @PostMapping
+    public ResponseEntity<UserResponseDTO> registerTenant(@Valid @RequestBody TenantRegistrationDTO registrationDTO){
         //return ResponseEntity.ok().body(userService.registerTenant(registrationDTO));
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.registerTenant(registrationDTO));
     }

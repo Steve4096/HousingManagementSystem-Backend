@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Date;
 import java.util.UUID;
 
 @Service
@@ -17,36 +18,25 @@ public class RefreshTokenService {
 
     private final RefreshTokenRepository refreshTokenRepository;
     private final JWTUtil jwtUtil;
+    private final JWTProperties jwtProperties;
 
-    public RefreshTokenService(RefreshTokenRepository refreshTokenRepository, JWTUtil jwtUtil){
+    public RefreshTokenService(RefreshTokenRepository refreshTokenRepository, JWTUtil jwtUtil,JWTProperties jwtProperties){
         this.refreshTokenRepository=refreshTokenRepository;
         this.jwtUtil=jwtUtil;
+        this.jwtProperties=jwtProperties;
     }
 
-    public RefreshToken createRefreshToken(User user){
-        RefreshToken refreshToken=RefreshToken.builder()
-                .user(user)
-                .token(UUID.randomUUID().toString()) //random unique string
-                .expiryDate(Instant.now().plusSeconds(7*24*60*60)) //7 days
-                .build();
+//    public RefreshToken createRefreshToken(User user){
+//        RefreshToken refreshToken=RefreshToken.builder()
+//                .user(user)
+//                .token(UUID.randomUUID().toString()) //random unique string
+//                .expiryDate(new Date(jwtProperties.getRefreshTokenExpiration()) //7 days
+//
+//
+//        return refreshTokenRepository.save(refreshToken);
+//    }
 
-        return refreshTokenRepository.save(refreshToken);
-    }
-
-    public String createRefreshToken(UserDetails userDetails){
-        String token= jwtUtil.generateRefreshToken(userDetails);
-
-        RefreshToken refreshToken=new RefreshToken();
-        refreshToken.setToken(token);
-        refreshToken.setUserDetails(userDetails.getUsername());
-        refreshToken.setExpiryDate(Instant.now().plusMillis(jwtUtil.getJwtProperties().getRefreshTokenExpiration()));
-
-        refreshTokenRepository.save(token);
-
-        return token;
-    }
-
-    public boolean validateRefreshToken(String token){
+    public boolean validateRefreshToken(Long token){
         RefreshToken refreshToken=refreshTokenRepository.findByToken(token)
                 .orElseThrow(()->new NotFoundException("Invalid refresh token"));
 

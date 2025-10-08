@@ -1,7 +1,8 @@
 package com.example.housingmanagementsystem.UtilityClasses;
 
-public enum Propertytype {
+public enum PropertyType {
     SHOP,
-    SINGLEROOM,
-    BEDSITTER,
+    SINGLE_ROOM,
+    STUDIO,
+    ONE_BEDROOM
 }

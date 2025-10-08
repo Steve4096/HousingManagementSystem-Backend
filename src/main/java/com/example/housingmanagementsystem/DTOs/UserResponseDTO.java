@@ -9,6 +9,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class UserResponseDTO {
+    private Long id;
     private String idNumber;
     private String fullName;
     private String emailAddress;

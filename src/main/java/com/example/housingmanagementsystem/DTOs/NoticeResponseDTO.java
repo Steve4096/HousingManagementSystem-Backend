@@ -1,7 +1,5 @@
 package com.example.housingmanagementsystem.DTOs;
 
-import com.example.housingmanagementsystem.Models.Property;
-import com.example.housingmanagementsystem.Models.User;
 import lombok.Getter;
 
 import java.time.LocalDateTime;

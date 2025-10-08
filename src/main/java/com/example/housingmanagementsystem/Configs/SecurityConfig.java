@@ -21,9 +21,12 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth->auth
 
                         //Open URLs
-                        .requestMatchers("/api/auth/**").permitAll() //login,refresh
+                       // .requestMatchers("/api/auth/**").permitAll() //login,refresh
 
-                        .anyRequest().authenticated() //everything else needs a token
+                        //.anyRequest().authenticated() //everything else needs a token
+
+                        //Temporarily disable spring security for all endpoints for easier testing
+                                .anyRequest().permitAll()
                         )
 
                 //Tells spring security not to create or use any HTTP sessions
@@ -31,10 +34,10 @@ public class SecurityConfig {
 
                         //STATELESS means each request is authenticated independently
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS) //JWT,no sessions
-                        )
+                        );
 
                 //JWT filter
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                //.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
 
         return httpSecurity.build();

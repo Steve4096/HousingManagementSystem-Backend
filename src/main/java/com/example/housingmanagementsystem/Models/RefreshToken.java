@@ -3,9 +3,11 @@ package com.example.housingmanagementsystem.Models;
 import com.example.housingmanagementsystem.Common.Auditable;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "refresh_tokens")
@@ -14,10 +16,18 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class RefreshToken extends Auditable {
+public class RefreshToken {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
 
     @Column(nullable = false,unique = true,length = 500)
-    private String token;
+    private Long token;
+
+    @CreatedDate
+    @Column(nullable = false,name = "created_at")
+    private LocalDateTime createdAt;
 
     @Column(nullable = false)
     private Instant expiryDate;
@@ -25,8 +35,6 @@ public class RefreshToken extends Auditable {
     @ManyToOne(fetch = FetchType.LAZY,optional = false)
     @JoinColumn(referencedColumnName = "id",nullable = false)
     private User user;
-
-    private UserDetails userDetails;
 
     @Column(nullable = false)
     private boolean isRevoked=false;
