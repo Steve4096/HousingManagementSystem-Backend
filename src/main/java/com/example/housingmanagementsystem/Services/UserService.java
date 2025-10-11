@@ -25,11 +25,13 @@ public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
+    private final EmailService emailService;
 
-    public UserService(UserRepository userRepository,PasswordEncoder passwordEncoder,UserMapper userMapper){
+    public UserService(UserRepository userRepository,PasswordEncoder passwordEncoder,UserMapper userMapper,EmailService emailService){
         this.userRepository=userRepository;
         this.passwordEncoder=passwordEncoder;
         this.userMapper=userMapper;
+        this.emailService=emailService;
     }
 
     private User saveUser(User user){
@@ -37,6 +39,13 @@ public class UserService implements UserDetailsService {
         String hashedPassword=passwordEncoder.encode(passwordGenerated);
         user.setStatus(UserStatus.ACTIVE);
         user.setPasswordHash(hashedPassword);
+        String to= user.getEmailAddress();
+        String subject="Login credentials";
+        String body="Hello"+" "+user.getFullName()+"\n" +
+                "Please use these credentials when logging in:"+"\n"+
+                "Email address:"+" "+to+"\n"+
+                "Password:"+" "+passwordGenerated;
+        emailService.sendSimpleEmail(to,subject,body);
         return userRepository.save(user);
     }
 
