@@ -27,5 +27,5 @@ public class TenantRegistrationDTO {
     private String phoneNumber;
 
     @NotNull(message = "House number must be selected")
-    private String houseNumber;
+    private Long propertyId;
 }

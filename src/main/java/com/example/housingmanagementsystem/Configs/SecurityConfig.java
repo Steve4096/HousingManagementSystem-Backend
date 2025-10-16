@@ -4,12 +4,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
+@EnableMethodSecurity //Enables @PreAuthorize annotations
 public class SecurityConfig {
 
     @Bean
@@ -20,8 +22,17 @@ public class SecurityConfig {
                 //Determines which methods are open vs protected
                 .authorizeHttpRequests(auth->auth
 
-                        //Open URLs
+                        //Open URLs/Public endpoints(no authentication required)
                        // .requestMatchers("/api/auth/**").permitAll() //login,refresh
+
+                        //Methods/routes only accessible by admin
+                                //.requestMatchers("/api/**").hasRole("ADMIN")
+
+                        //Methods accessible by admin and landlord
+                                //.requestMatchers("/api/**").hasAnyRole("ADMIN,LANDLORD")
+
+                        //Methods accessible by admins,landlords and users
+                               // .requestMatchers("/api/").hasAnyRole("ADMIN,LANDLORD,USER")
 
                         //.anyRequest().authenticated() //everything else needs a token
 

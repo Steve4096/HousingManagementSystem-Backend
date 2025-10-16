@@ -5,11 +5,15 @@ import com.example.housingmanagementsystem.DTOs.UserRegistrationDTO;
 import com.example.housingmanagementsystem.DTOs.UserResponseDTO;
 import com.example.housingmanagementsystem.DTOs.UserUpdateDTO;
 import com.example.housingmanagementsystem.Mappers.UserMapper;
+import com.example.housingmanagementsystem.Models.Property;
 import com.example.housingmanagementsystem.Models.User;
+import com.example.housingmanagementsystem.Repositories.PropertyRepository;
 import com.example.housingmanagementsystem.Repositories.UserRepository;
 import com.example.housingmanagementsystem.UtilityClasses.PasswordGenerator;
 import com.example.housingmanagementsystem.UtilityClasses.Role;
 import com.example.housingmanagementsystem.UtilityClasses.UserStatus;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -20,6 +24,7 @@ import java.util.List;
 
 
 @Service
+@RequiredArgsConstructor
 public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
@@ -27,13 +32,8 @@ public class UserService implements UserDetailsService {
     private final UserMapper userMapper;
     private final EmailService emailService;
 
-    public UserService(UserRepository userRepository,PasswordEncoder passwordEncoder,UserMapper userMapper,EmailService emailService){
-        this.userRepository=userRepository;
-        this.passwordEncoder=passwordEncoder;
-        this.userMapper=userMapper;
-        this.emailService=emailService;
-    }
 
+   // @PreAuthorize("hasAnyRole('ADMIN','LANDLORD')")
     private User saveUser(User user){
         String passwordGenerated=PasswordGenerator.generatePassword();
         String hashedPassword=passwordEncoder.encode(passwordGenerated);
@@ -49,18 +49,19 @@ public class UserService implements UserDetailsService {
         return userRepository.save(user);
     }
 
+    //@PreAuthorize("hasRole('ADMIN')")
     public UserResponseDTO registerUser(UserRegistrationDTO userDTO){
         User user=userMapper.toEntity(userDTO);
         User savedUser=saveUser(user);
         return userMapper.toDTO(savedUser);
     }
 
+   // @PreAuthorize("hasAnyRole('ADMIN','LANDLORD')")
     public UserResponseDTO registerTenant(TenantRegistrationDTO tenantDTO){
         User tenant=userMapper.toEntity(tenantDTO);
 
         //Handle fields not set in the DTO
         tenant.setRole(Role.TENANT);
-        //tenant.setStatus(UserStatus.ACTIVE);
 
         User savedTenant=saveUser(tenant);
         return userMapper.toDTO(savedTenant);
@@ -82,6 +83,7 @@ public class UserService implements UserDetailsService {
 
     //On user logout
 
+    //@PreAuthorize("hasAnyRole('ADMIN','LANDLORD','USER')")
     @Transactional
     public UserResponseDTO updateUserDetails(Long id,UserUpdateDTO updateDTO){
         User user=userRepository.findById(id)
@@ -96,6 +98,7 @@ public class UserService implements UserDetailsService {
         return userMapper.toDTO(savedUser);
     }
 
+   // @PreAuthorize("hasRole('ADMIN')")
     public List<UserResponseDTO> fetchAllUsers(){
         return userRepository.findAll()
                 .stream()
@@ -110,11 +113,18 @@ public class UserService implements UserDetailsService {
 //                .collect(Collectors.groupingBy()
 //    }
 
+   // @PreAuthorize("hasAnyRole('ADMIN','LANDLORD')")
     public boolean deleteUser(Long id){
         if(userRepository.existsById(id)){
             userRepository.deleteById(id);
             return true;
         }
         return false;
+    }
+
+    public User findUSerByEmail(String email){
+        User user=userRepository.findByEmailAddress(email)
+                .orElseThrow(()->new RuntimeException("User not found"));
+        return user;
     }
 }

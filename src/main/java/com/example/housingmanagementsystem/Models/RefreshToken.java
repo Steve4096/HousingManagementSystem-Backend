@@ -23,7 +23,7 @@ public class RefreshToken {
     private String id;
 
     @Column(nullable = false,unique = true,length = 500)
-    private Long token;
+    private String token;
 
     @CreatedDate
     @Column(nullable = false,name = "created_at")

@@ -1,10 +1,13 @@
 package com.example.housingmanagementsystem.Controllers;
 
+import com.example.housingmanagementsystem.DTOs.AuthResponseDTO;
 import com.example.housingmanagementsystem.DTOs.LoginDTO;
+import com.example.housingmanagementsystem.DTOs.TokenRefreshRequestDTO;
+import com.example.housingmanagementsystem.Models.RefreshToken;
 import com.example.housingmanagementsystem.Services.RefreshTokenService;
+import com.example.housingmanagementsystem.Services.UserService;
 import com.example.housingmanagementsystem.UtilityClasses.JWTUtil;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/auth")
 public class AuthController {
 
@@ -25,13 +29,8 @@ public class AuthController {
     private final JWTUtil jwtUtil;
     private final UserDetailsService userDetailsService;
     private final RefreshTokenService refreshTokenService;
+    private final UserService userService;
 
-    public AuthController(AuthenticationManager authenticationManager,JWTUtil jwtUtil,UserDetailsService userDetailsService,RefreshTokenService refreshTokenService){
-        this.authenticationManager=authenticationManager;
-        this.jwtUtil=jwtUtil;
-        this.userDetailsService=userDetailsService;
-        this.refreshTokenService=refreshTokenService;
-    }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginDTO request){
@@ -42,16 +41,77 @@ public class AuthController {
 
         // Extract user details from authentication
         var userDetails = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
+        var user=userService.findUSerByEmail(request.getEmailAddress());
 
         //Generate tokens
         String accessToken= jwtUtil.generateAccessToken(userDetails);
         String refreshToken=jwtUtil.generateRefreshToken(userDetails);
 
-        return ResponseEntity.ok().body(
-                Map.of("accessToken",accessToken,
-                        "refreshToken",refreshToken)
-        );
+        //Save refresh token in DB
+        refreshTokenService.createRefreshToken(user,refreshToken);
+
+//        return ResponseEntity.ok().body(
+//                Map.of("accessToken",accessToken,
+//                        "refreshToken",refreshToken)
+//     );
+
+        return ResponseEntity.ok(new AuthResponseDTO(accessToken,refreshToken));
     }
+
+//    public ResponseEntity<?> refreshToken(@RequestBody Map<String,String> request){
+//        String requestRefreshToken=request.get("refresh token");
+//        if(requestRefreshToken==null){
+//            return ResponseEntity.badRequest().body("Refresh token is required");
+//        }
+//
+//        try {
+//            RefreshToken oldToken=refreshTokenService.validateRefreshToken(requestRefreshToken);
+//
+//            //Load user and generate new access token
+//            var user=oldToken.getUser();
+//            var userDetails=userDetailsService.loadUserByUsername(user.getEmailAddress());
+//            String newAccessToken= jwtUtil.generateAccessToken(userDetails);
+//
+//            //Revoke old/used refresh token and issue new refresh token
+//            RefreshToken newRefreshToken=refreshTokenService.rotateRefreshToken(oldToken);
+//
+////            return ResponseEntity.ok(Map.of(
+////                    "accessToken",newAccessToken,
+////                    "refreshToken",newRefreshToken.getToken()
+////            ));
+//
+//            return ResponseEntity.ok(new AuthResponseDTO(newAccessToken,newRefreshToken.getToken()));
+//
+//        }catch (Exception e){
+//            return ResponseEntity.status(401).body(Map.of("error",e.getMessage()));
+//        }
+//    }
+
+
+/*public ResponseEntity<?> refreshToken(@RequestBody TokenRefreshRequestDTO request){
+    String requestRefreshToken=request.get("refresh token");
+    if(requestRefreshToken==null){
+        return ResponseEntity.badRequest().body("Refresh token is required");
+    }
+
+    try {
+        RefreshToken oldToken=refreshTokenService.validateRefreshToken(requestRefreshToken);
+
+        //Load user and generate new access token
+        var user=oldToken.getUser();
+        var userDetails=userDetailsService.loadUserByUsername(user.getEmailAddress());
+        String newAccessToken= jwtUtil.generateAccessToken(userDetails);
+
+        //Revoke old/used refresh token and issue new refresh token
+        RefreshToken newRefreshToken=refreshTokenService.rotateRefreshToken(oldToken);
+
+        return ResponseEntity.ok(new AuthResponseDTO(newAccessToken,newRefreshToken.getToken()));
+
+    }catch (Exception e){
+        return ResponseEntity.status(401).body(Map.of("error",e.getMessage()));
+    }
+}*/
+
 
 //    @PostMapping("/refresh")
 //    public ResponseEntity<?> refreshToken(@RequestBody Map<String, String> request) {
