@@ -4,6 +4,7 @@ import com.example.housingmanagementsystem.DTOs.TenantRegistrationDTO;
 import com.example.housingmanagementsystem.DTOs.UserRegistrationDTO;
 import com.example.housingmanagementsystem.DTOs.UserResponseDTO;
 import com.example.housingmanagementsystem.DTOs.UserUpdateDTO;
+import com.example.housingmanagementsystem.Exceptions.AccessDeniedException;
 import com.example.housingmanagementsystem.Mappers.UserMapper;
 import com.example.housingmanagementsystem.Models.Property;
 import com.example.housingmanagementsystem.Models.User;
@@ -14,6 +15,7 @@ import com.example.housingmanagementsystem.UtilityClasses.Role;
 import com.example.housingmanagementsystem.UtilityClasses.UserStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -84,6 +86,7 @@ public class UserService implements UserDetailsService {
     //On user logout
 
     //@PreAuthorize("hasAnyRole('ADMIN','LANDLORD','USER')")
+    @PreAuthorize("#id==authentication.principal.id or hasRole('ADMIN')")
     @Transactional
     public UserResponseDTO updateUserDetails(Long id,UserUpdateDTO updateDTO){
         User user=userRepository.findById(id)
@@ -98,7 +101,6 @@ public class UserService implements UserDetailsService {
         return userMapper.toDTO(savedUser);
     }
 
-   // @PreAuthorize("hasRole('ADMIN')")
     public List<UserResponseDTO> fetchAllUsers(){
         return userRepository.findAll()
                 .stream()
@@ -115,11 +117,18 @@ public class UserService implements UserDetailsService {
 
    // @PreAuthorize("hasAnyRole('ADMIN','LANDLORD')")
     public boolean deleteUser(Long id){
-        if(userRepository.existsById(id)){
-            userRepository.deleteById(id);
-            return true;
-        }
-        return false;
+        User toBeDeleted=userRepository.findById(id)
+                .orElseThrow(()->new RuntimeException("User not found"));
+
+            String currentUserRole= SecurityContextHolder.getContext().getAuthentication()
+                    .getAuthorities().iterator().next().getAuthority();
+            if(currentUserRole.equals("ROLE_LANDLORD") && !toBeDeleted.getRole().equals("TENANT")){
+                throw new AccessDeniedException("Landlord can only delete tenant");
+
+            }
+
+        userRepository.deleteById(toBeDeleted.getId());
+        return true;
     }
 
     public User findUSerByEmail(String email){

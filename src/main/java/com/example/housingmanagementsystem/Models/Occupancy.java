@@ -19,11 +19,11 @@ import java.time.LocalDateTime;
 @Entity
 public class Occupancy extends BaseEntity {
 
-    @ManyToOne
-    @JoinColumn(name= "tenant_id",nullable = false )
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name= "user_id",nullable = false )
     private User user;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "property_id",nullable = false)
     private Property property;
 
@@ -34,5 +34,4 @@ public class Occupancy extends BaseEntity {
     @LastModifiedDate
     @Column(name = "date_moved_out")
     private LocalDateTime endDate;
-
 }

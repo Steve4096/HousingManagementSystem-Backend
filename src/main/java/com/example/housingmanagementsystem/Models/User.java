@@ -12,6 +12,7 @@ import lombok.*;
 import org.hibernate.envers.Audited;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @NoArgsConstructor
 @Entity
@@ -61,5 +62,11 @@ public class User extends Auditable {
     @ToString.Exclude
     @Column(nullable = false)
     private String passwordHash;
+
+    @ManyToMany(mappedBy = "users",fetch = FetchType.LAZY)
+    private List<Complaint> complaints;
+
+    @OneToMany(fetch = FetchType.LAZY,cascade = CascadeType.ALL,mappedBy = "user")
+    private List<Occupancy> properties;
 
 }

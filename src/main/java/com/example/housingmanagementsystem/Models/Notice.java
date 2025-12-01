@@ -25,7 +25,6 @@ public class Notice extends Auditable {
     private User user;
 
     @OneToOne
-    @JoinColumn(name = "property_id",referencedColumnName = "id",nullable = false)
-    private Property property;
-
+    @JoinColumn(name = "occupancy_id",referencedColumnName = "id",nullable = false)
+    private Occupancy occupancy;
 }

@@ -148,4 +148,13 @@ public class AuthController {
 //        }
 //    }
 
+    //When logging out,reset/delete all refresh tokens
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(Authentication authentication){
+        String username=authentication.getName();
+        var user=userService.findUSerByEmail(username);
+        refreshTokenService.revokeTokensByUser(user);
+        return ResponseEntity.ok(Map.of("message","Logged out successfully"));
+    }
+
 }

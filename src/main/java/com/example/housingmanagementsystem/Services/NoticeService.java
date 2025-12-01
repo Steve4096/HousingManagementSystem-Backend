@@ -6,19 +6,30 @@ import com.example.housingmanagementsystem.Exceptions.NotFoundException;
 import com.example.housingmanagementsystem.Mappers.NoticeMapper;
 import com.example.housingmanagementsystem.Models.Notice;
 import com.example.housingmanagementsystem.Repositories.NoticeRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class NoticeService {
 
     private final NoticeRepository noticeRepository;
     private final NoticeMapper noticeMapper;
+    private final UserService userService;
 
-    public NoticeService(NoticeRepository noticeRepository,NoticeMapper noticeMapper){
-        this.noticeRepository=noticeRepository;
-        this.noticeMapper=noticeMapper;
+    public NoticeResponseDTO fileNotice(NoticeFillingDTO noticeFillingDTO){
+        //Find logged in user
+        String email=SecurityContextHolder.getContext().getAuthentication().getName();
+
+        //Find the user Id based on the email address provided
+        User loggedInUser=userService.findUSerByEmail(email);
     }
 
     public NoticeResponseDTO saveNotice(NoticeFillingDTO noticeFillingDTO){

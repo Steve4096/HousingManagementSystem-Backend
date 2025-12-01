@@ -6,7 +6,6 @@ import com.example.housingmanagementsystem.DTOs.UserResponseDTO;
 import com.example.housingmanagementsystem.DTOs.UserUpdateDTO;
 import com.example.housingmanagementsystem.Models.User;
 import org.mapstruct.*;
-import org.mapstruct.factory.Mappers;
 
 @Mapper(componentModel = "spring",nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface UserMapper {
