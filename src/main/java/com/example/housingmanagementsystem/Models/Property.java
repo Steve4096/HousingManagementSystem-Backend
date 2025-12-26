@@ -2,10 +2,7 @@ package com.example.housingmanagementsystem.Models;
 
 import com.example.housingmanagementsystem.Common.Auditable;
 import com.example.housingmanagementsystem.UtilityClasses.PropertyType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -13,6 +10,7 @@ import lombok.*;
 import org.hibernate.envers.Audited;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Entity
 @Getter
@@ -39,4 +37,7 @@ public class Property extends Auditable {
     @Column(nullable = false)
     @DecimalMin(value ="8500", message = "The minimum rent amount should be 8500")
     private BigDecimal rentAmount;
+
+    @OneToMany(fetch = FetchType.LAZY,cascade =CascadeType.ALL,mappedBy ="property" )
+    private List<Occupancy> occupancies;
 }

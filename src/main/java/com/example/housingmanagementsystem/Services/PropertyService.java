@@ -2,24 +2,28 @@ package com.example.housingmanagementsystem.Services;
 
 import com.example.housingmanagementsystem.DTOs.PropertyRegistrationDTO;
 import com.example.housingmanagementsystem.DTOs.PropertyResponseDTO;
+import com.example.housingmanagementsystem.DTOs.SelectedPropertyDTO;
 import com.example.housingmanagementsystem.Exceptions.DuplicateException;
+import com.example.housingmanagementsystem.Exceptions.NotFoundException;
 import com.example.housingmanagementsystem.Mappers.PropertyMapper;
+import com.example.housingmanagementsystem.Models.Occupancy;
 import com.example.housingmanagementsystem.Models.Property;
+import com.example.housingmanagementsystem.Models.User;
 import com.example.housingmanagementsystem.Repositories.PropertyRepository;
+import com.example.housingmanagementsystem.Security.CustomUserDetails;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class PropertyService {
 
     private final PropertyRepository propertyRepository;
     private final PropertyMapper propertyMapper;
-
-    public PropertyService(PropertyRepository propertyRepository,PropertyMapper propertyMapper){
-        this.propertyRepository=propertyRepository;
-        this.propertyMapper=propertyMapper;
-    }
+    private final UserService userService;
 
     public PropertyResponseDTO createProperty(PropertyRegistrationDTO registrationDTO){
         if(propertyRepository.findByUnitNumber(registrationDTO.getUnitNumber()).isPresent()){
@@ -40,6 +44,17 @@ public class PropertyService {
         return propertyRepository.findAll()
                 .stream()
                 .map(propertyMapper::toDTO)
+                .toList();
+    }
+
+    public List<SelectedPropertyDTO> getSpecificTenantActiveProperties(){
+        CustomUserDetails userDetails=(CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user=userService.findUSerByEmail(userDetails.getUsername());
+
+        return user.getOccupancies().stream()
+                .filter(o->o.getEndDate()==null)
+                //.map(Occupancy::getProperty)//Convert Occupancy to property
+                .map(propertyMapper::selectedPropertyToDTO)
                 .toList();
     }
 

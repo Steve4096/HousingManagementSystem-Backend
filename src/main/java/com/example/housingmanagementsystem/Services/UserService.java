@@ -10,6 +10,7 @@ import com.example.housingmanagementsystem.Models.Property;
 import com.example.housingmanagementsystem.Models.User;
 import com.example.housingmanagementsystem.Repositories.PropertyRepository;
 import com.example.housingmanagementsystem.Repositories.UserRepository;
+import com.example.housingmanagementsystem.Security.CustomUserDetails;
 import com.example.housingmanagementsystem.UtilityClasses.PasswordGenerator;
 import com.example.housingmanagementsystem.UtilityClasses.Role;
 import com.example.housingmanagementsystem.UtilityClasses.UserStatus;
@@ -70,17 +71,25 @@ public class UserService implements UserDetailsService {
     }
 
     //Load user details by email
-    @Override
+//    @Override
+//    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException{
+//        User user=userRepository.findByEmailAddress(username)
+//                .orElseThrow(()->new UsernameNotFoundException("User with email"+" "+username+" "+"not found"));
+//
+//        // Convert your User entity into Spring Security's UserDetails
+//        return org.springframework.security.core.userdetails.User.builder()
+//                .username(user.getEmailAddress())
+//                .password(user.getPasswordHash())
+//                .authorities(user.getRole().name())
+//                .build();
+//    }
+
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException{
         User user=userRepository.findByEmailAddress(username)
-                .orElseThrow(()->new UsernameNotFoundException("User with email"+" "+username+" "+"not found"));
+                .orElseThrow(()->new UsernameNotFoundException("User with email"+" "+username+"not found"));
 
-        // Convert your User entity into Spring Security's UserDetails
-        return org.springframework.security.core.userdetails.User.builder()
-                .username(user.getEmailAddress())
-                .password(user.getPasswordHash())
-                .authorities(user.getRole().name())
-                .build();
+        //Convert the entity into spring security
+        return new CustomUserDetails(user);
     }
 
     //On user logout

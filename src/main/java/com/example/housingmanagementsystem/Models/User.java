@@ -10,8 +10,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
 import org.hibernate.envers.Audited;
-
-import java.time.LocalDateTime;
 import java.util.List;
 
 @NoArgsConstructor
@@ -47,8 +45,7 @@ public class User extends Auditable {
     private String emailAddress;
 
     @ToString.Include
-    //@NotBlank(message = "Username must be provided")
-    @Column(unique = true,nullable = true)
+    @Column(unique = true)
     private String userName;
 
     @Pattern(regexp = "\\+?\\d{10,15}" ,message = "Phone number must contain 10-15 digits")
@@ -67,6 +64,6 @@ public class User extends Auditable {
     private List<Complaint> complaints;
 
     @OneToMany(fetch = FetchType.LAZY,cascade = CascadeType.ALL,mappedBy = "user")
-    private List<Occupancy> properties;
+    private List<Occupancy> occupancies;
 
 }

@@ -2,6 +2,7 @@ package com.example.housingmanagementsystem.Controllers;
 
 import com.example.housingmanagementsystem.DTOs.PropertyRegistrationDTO;
 import com.example.housingmanagementsystem.DTOs.PropertyResponseDTO;
+import com.example.housingmanagementsystem.DTOs.SelectedPropertyDTO;
 import com.example.housingmanagementsystem.Services.PropertyService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -28,6 +29,11 @@ public class PropertyController {
     @GetMapping
     public ResponseEntity<List<PropertyResponseDTO>> fetchExistingProperties(){
         return ResponseEntity.ok().body(propertyService.fetchExistingProperties());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<List<SelectedPropertyDTO>> getTenantActiveProperties(){
+        return ResponseEntity.ok(propertyService.getSpecificTenantActiveProperties());
     }
 
     @DeleteMapping("/{id}")

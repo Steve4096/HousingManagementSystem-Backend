@@ -4,16 +4,21 @@ import com.example.housingmanagementsystem.DTOs.NoticeFillingDTO;
 import com.example.housingmanagementsystem.DTOs.NoticeResponseDTO;
 import com.example.housingmanagementsystem.Exceptions.NotFoundException;
 import com.example.housingmanagementsystem.Mappers.NoticeMapper;
+import com.example.housingmanagementsystem.Mappers.PropertyMapper;
 import com.example.housingmanagementsystem.Models.Notice;
+import com.example.housingmanagementsystem.Models.Occupancy;
+import com.example.housingmanagementsystem.Models.Property;
+import com.example.housingmanagementsystem.Models.User;
 import com.example.housingmanagementsystem.Repositories.NoticeRepository;
+import com.example.housingmanagementsystem.Security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -23,24 +28,39 @@ public class NoticeService {
     private final NoticeRepository noticeRepository;
     private final NoticeMapper noticeMapper;
     private final UserService userService;
+    private final PropertyService propertyService;
+    private final PropertyMapper propertyMapper;
 
     public NoticeResponseDTO fileNotice(NoticeFillingDTO noticeFillingDTO){
         //Find logged in user
-        String email=SecurityContextHolder.getContext().getAuthentication().getName();
+        com.example.housingmanagementsystem.Security.CustomUserDetails userDetails =(CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        //Find the user Id based on the email address provided
-        User loggedInUser=userService.findUSerByEmail(email);
-    }
+        //Find logged in user entity
+        com.example.housingmanagementsystem.Models.User user =userService.findUSerByEmail(userDetails.getUsername());
 
-    public NoticeResponseDTO saveNotice(NoticeFillingDTO noticeFillingDTO){
-        //Convert the notice DTO to an entity first
+        //Find the properties the user has
+        List<Occupancy> occupancies=user.getOccupancies();
+
+        List<Property> occupiedProperties=occupancies.stream()
+                .filter(o->o.getEndDate()==null)
+                .map(Occupancy::getProperty)
+                .toList();
+
+        Property selectedProperty;
+        if(occupiedProperties.size()==1){
+            selectedProperty=occupiedProperties.get(0);
+        }else {
+            //Lists all properties adn lets the user select from the frontend
+            return occupiedProperties.stream()
+                    .map(propertyMapper::toDTO);
+            selectedProperty=null;
+        }
+
+        //Convert to entity
         Notice notice=noticeMapper.toEntity(noticeFillingDTO);
 
-        //Save the entity
-        Notice savedNotice=noticeRepository.save(notice);
-
-        //return the saved DTO
-        return noticeMapper.toDTO(savedNotice);
+        LocalDateTime date=notice.getDateIntendToLeave();
+        Notice no=new Notice(date,user,selectedProperty);
     }
 
     public List<NoticeResponseDTO> fetchAllNoticesFiled(){
