@@ -2,23 +2,19 @@ package com.example.housingmanagementsystem.Services;
 
 import com.example.housingmanagementsystem.DTOs.NoticeFillingDTO;
 import com.example.housingmanagementsystem.DTOs.NoticeResponseDTO;
+import com.example.housingmanagementsystem.DTOs.OccupancyResponseDTO;
 import com.example.housingmanagementsystem.Exceptions.NotFoundException;
 import com.example.housingmanagementsystem.Mappers.NoticeMapper;
+import com.example.housingmanagementsystem.Mappers.OccupancyMapper;
 import com.example.housingmanagementsystem.Mappers.PropertyMapper;
 import com.example.housingmanagementsystem.Models.Notice;
 import com.example.housingmanagementsystem.Models.Occupancy;
-import com.example.housingmanagementsystem.Models.Property;
-import com.example.housingmanagementsystem.Models.User;
 import com.example.housingmanagementsystem.Repositories.NoticeRepository;
 import com.example.housingmanagementsystem.Security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -30,37 +26,39 @@ public class NoticeService {
     private final UserService userService;
     private final PropertyService propertyService;
     private final PropertyMapper propertyMapper;
+    private final OccupancyService occupancyService;
+    private final OccupancyMapper occupancyMapper;
 
-    public NoticeResponseDTO fileNotice(NoticeFillingDTO noticeFillingDTO){
-        //Find logged in user
+    public Object fileNotice(NoticeFillingDTO noticeFillingDTO){
+        //Find logged-in user
         com.example.housingmanagementsystem.Security.CustomUserDetails userDetails =(CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         //Find logged in user entity
         com.example.housingmanagementsystem.Models.User user =userService.findUSerByEmail(userDetails.getUsername());
 
-        //Find the properties the user has
-        List<Occupancy> occupancies=user.getOccupancies();
-
-        List<Property> occupiedProperties=occupancies.stream()
+        List<Occupancy> activeOccupancies=user.getOccupancies().stream()
                 .filter(o->o.getEndDate()==null)
-                .map(Occupancy::getProperty)
+                //.map(occupancyMapper::toDTO)
                 .toList();
 
-        Property selectedProperty;
-        if(occupiedProperties.size()==1){
-            selectedProperty=occupiedProperties.get(0);
+        Long occupancyId;
+        if(activeOccupancies.isEmpty()){
+            throw new NotFoundException("No Active occupancies found for the user");
+        } else if (activeOccupancies.size()>1) {
+            List<OccupancyResponseDTO> selectionList=activeOccupancies.stream()
+                    .map(occupancyMapper::toDTO)
+                    .toList();
+            return selectionList;
         }else {
-            //Lists all properties adn lets the user select from the frontend
-            return occupiedProperties.stream()
-                    .map(propertyMapper::toDTO);
-            selectedProperty=null;
+            noticeFillingDTO.setOccupancyId(activeOccupancies.get(0).getId());
         }
 
         //Convert to entity
         Notice notice=noticeMapper.toEntity(noticeFillingDTO);
 
-        LocalDateTime date=notice.getDateIntendToLeave();
-        Notice no=new Notice(date,user,selectedProperty);
+        Notice savedNotice=noticeRepository.save(notice);
+
+        return noticeMapper.toDTO(savedNotice);
     }
 
     public List<NoticeResponseDTO> fetchAllNoticesFiled(){
