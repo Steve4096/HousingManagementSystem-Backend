@@ -1,6 +1,7 @@
 package com.example.housingmanagementsystem.Models;
 
 import com.example.housingmanagementsystem.Common.Auditable;
+import com.example.housingmanagementsystem.UtilityClasses.NoticeStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -21,10 +22,11 @@ public class Notice extends Auditable {
     private LocalDateTime dateIntendToLeave;
 
     @OneToOne
-    @JoinColumn(name = "user_id",referencedColumnName = "id",nullable = false)
-    private User user;
-
-    @OneToOne
-    @JoinColumn(name = "occupancy_id",referencedColumnName = "id",nullable = false)
+    @JoinColumn(name = "occupancy_id",referencedColumnName = "id",nullable = false,unique = true)
     private Occupancy occupancy;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private NoticeStatus status=NoticeStatus.UNREAD;
 }

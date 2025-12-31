@@ -2,15 +2,15 @@ package com.example.housingmanagementsystem.Services;
 
 import com.example.housingmanagementsystem.DTOs.NoticeFillingDTO;
 import com.example.housingmanagementsystem.DTOs.NoticeResponseDTO;
-import com.example.housingmanagementsystem.DTOs.OccupancyResponseDTO;
+import com.example.housingmanagementsystem.Exceptions.AccessDeniedException;
+import com.example.housingmanagementsystem.Exceptions.DuplicateException;
 import com.example.housingmanagementsystem.Exceptions.NotFoundException;
 import com.example.housingmanagementsystem.Mappers.NoticeMapper;
-import com.example.housingmanagementsystem.Mappers.OccupancyMapper;
-import com.example.housingmanagementsystem.Mappers.PropertyMapper;
 import com.example.housingmanagementsystem.Models.Notice;
 import com.example.housingmanagementsystem.Models.Occupancy;
 import com.example.housingmanagementsystem.Repositories.NoticeRepository;
 import com.example.housingmanagementsystem.Security.CustomUserDetails;
+import com.example.housingmanagementsystem.UtilityClasses.NoticeStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -24,37 +24,33 @@ public class NoticeService {
     private final NoticeRepository noticeRepository;
     private final NoticeMapper noticeMapper;
     private final UserService userService;
-    private final PropertyService propertyService;
-    private final PropertyMapper propertyMapper;
     private final OccupancyService occupancyService;
-    private final OccupancyMapper occupancyMapper;
 
-    public Object fileNotice(NoticeFillingDTO noticeFillingDTO){
+    public NoticeResponseDTO fileNotice(NoticeFillingDTO noticeFillingDTO){
         //Find logged-in user
         com.example.housingmanagementsystem.Security.CustomUserDetails userDetails =(CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         //Find logged in user entity
         com.example.housingmanagementsystem.Models.User user =userService.findUSerByEmail(userDetails.getUsername());
 
-        List<Occupancy> activeOccupancies=user.getOccupancies().stream()
-                .filter(o->o.getEndDate()==null)
-                //.map(occupancyMapper::toDTO)
-                .toList();
+        //Verify that the occupancy exists
+        Occupancy occupancy=occupancyService.findOccupancy(noticeFillingDTO.getOccupancyId())
+                .orElseThrow(()->new NotFoundException("Occupancy not found"));
 
-        Long occupancyId;
-        if(activeOccupancies.isEmpty()){
-            throw new NotFoundException("No Active occupancies found for the user");
-        } else if (activeOccupancies.size()>1) {
-            List<OccupancyResponseDTO> selectionList=activeOccupancies.stream()
-                    .map(occupancyMapper::toDTO)
-                    .toList();
-            return selectionList;
-        }else {
-            noticeFillingDTO.setOccupancyId(activeOccupancies.get(0).getId());
+        //Verify that no notice has been filed before
+        if(noticeRepository.existsByOccupancyId(noticeFillingDTO.getOccupancyId())){
+            throw new DuplicateException("Only one notice can be filed per occupancy");
+        }
+
+        //Verify that the occupancy belongs to the user
+        if(!occupancy.getUser().getId().equals(user.getId())){
+            throw new AccessDeniedException("You can only file a notice for properties belonging to you");
         }
 
         //Convert to entity
         Notice notice=noticeMapper.toEntity(noticeFillingDTO);
+        notice.setStatus(NoticeStatus.UNREAD);
+        notice.setOccupancy(occupancy);
 
         Notice savedNotice=noticeRepository.save(notice);
 
@@ -68,17 +64,22 @@ public class NoticeService {
                 .toList();
     }
 
-    public NoticeResponseDTO updateExistingNotice(Long id,NoticeFillingDTO noticeFillingDTO){
+    public List<NoticeResponseDTO> fetchUnreadNotices(){
+        return noticeRepository.findByStatus(NoticeStatus.UNREAD)
+                .stream()
+                .map(noticeMapper::toDTO)
+                .toList();
+    }
+
+    public long countUnreadNotices(){
+        return noticeRepository.countByStatus(NoticeStatus.UNREAD);
+    }
+
+    public void markNoticeAsRead(Long id){
         Notice notice=noticeRepository.findById(id)
-                        .orElseThrow(()-> new NotFoundException("Notice not found"));
+                .orElseThrow(()->new NotFoundException("Notice not found"));
 
-        //Using Mapstruct to track changes
-        noticeMapper.updateExistingNotice(noticeFillingDTO,notice);
-
-        //Saving the changes made
-        Notice savedNotice=noticeRepository.save(notice);
-
-        //Return the saved notice in DTO form
-        return noticeMapper.toDTO(savedNotice);
+        notice.setStatus(NoticeStatus.READ);
+        noticeRepository.save(notice);
     }
 }

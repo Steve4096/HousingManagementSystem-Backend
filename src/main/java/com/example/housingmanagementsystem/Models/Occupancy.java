@@ -1,6 +1,5 @@
 package com.example.housingmanagementsystem.Models;
 
-import com.example.housingmanagementsystem.Common.Auditable;
 import com.example.housingmanagementsystem.Common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -8,7 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
@@ -29,10 +27,12 @@ public class Occupancy extends BaseEntity {
     @JoinColumn(name = "property_id",nullable = false)
     private Property property;
 
+    @OneToOne(mappedBy = "occupancy")
+    private Notice notice;
+
     @CreatedDate
     @Column(name = "date_moved_in",nullable = false)
     private LocalDateTime startDate;
-
 
     @Column(name = "date_moved_out")
     private LocalDateTime endDate;

@@ -4,6 +4,7 @@ import com.example.housingmanagementsystem.DTOs.OccupancyCreationDTO;
 import com.example.housingmanagementsystem.DTOs.OccupancyResponseDTO;
 import com.example.housingmanagementsystem.Exceptions.NotFoundException;
 import com.example.housingmanagementsystem.Mappers.OccupancyMapper;
+import com.example.housingmanagementsystem.Models.Notice;
 import com.example.housingmanagementsystem.Models.Occupancy;
 import com.example.housingmanagementsystem.Models.Property;
 import com.example.housingmanagementsystem.Models.User;
@@ -11,10 +12,13 @@ import com.example.housingmanagementsystem.Repositories.OccupancyRepository;
 import com.example.housingmanagementsystem.Repositories.PropertyRepository;
 import com.example.housingmanagementsystem.Repositories.UserRepository;
 import com.example.housingmanagementsystem.Security.CustomUserDetails;
+import com.example.housingmanagementsystem.UtilityClasses.UserStatus;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -61,6 +65,17 @@ public class OccupancyService {
         return loggedInUser.getOccupancies().stream()
                 .map(occupancyMapper::toDTO)
                 .toList();
+    }
+
+    @Transactional
+    public void terminateOccupancy(Long occupancyId){
+        Occupancy occupancy=occupancyRepository.findById(occupancyId)
+                .orElseThrow(()->new NotFoundException("Occupancy record does not exist"));
+
+        occupancy.setEndDate(LocalDateTime.now());
+        //User user=occupancy.getUser();
+        //user.setStatus(UserStatus.INACTIVE);
+        occupancyRepository.save(occupancy);
     }
 
     public Optional<Occupancy> findOccupancy(Long id){

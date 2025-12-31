@@ -3,10 +3,7 @@ package com.example.housingmanagementsystem.Mappers;
 import com.example.housingmanagementsystem.DTOs.NoticeFillingDTO;
 import com.example.housingmanagementsystem.DTOs.NoticeResponseDTO;
 import com.example.housingmanagementsystem.Models.Notice;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.mapstruct.*;
 
 @Mapper(componentModel = "spring")
 public interface NoticeMapper {
@@ -15,6 +12,8 @@ public interface NoticeMapper {
     Notice toEntity(NoticeFillingDTO noticeFillingDTO);
 
     //Entity -> DTO
+    @Mapping(source = "occupancy.user.fullName", target = "tenantName")
+    @Mapping(source = "occupancy.property.unitNumber", target = "unitNumber")
     NoticeResponseDTO toDTO(Notice notice);
 
     //Updating a notice filed

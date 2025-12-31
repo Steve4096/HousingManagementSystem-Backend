@@ -1,10 +1,12 @@
 package com.example.housingmanagementsystem.Services;
 
+import com.example.housingmanagementsystem.DTOs.OccupancyResponseDTO;
 import com.example.housingmanagementsystem.DTOs.PropertyRegistrationDTO;
 import com.example.housingmanagementsystem.DTOs.PropertyResponseDTO;
 import com.example.housingmanagementsystem.DTOs.SelectedPropertyDTO;
 import com.example.housingmanagementsystem.Exceptions.DuplicateException;
 import com.example.housingmanagementsystem.Exceptions.NotFoundException;
+import com.example.housingmanagementsystem.Mappers.OccupancyMapper;
 import com.example.housingmanagementsystem.Mappers.PropertyMapper;
 import com.example.housingmanagementsystem.Models.Occupancy;
 import com.example.housingmanagementsystem.Models.Property;
@@ -24,6 +26,7 @@ public class PropertyService {
     private final PropertyRepository propertyRepository;
     private final PropertyMapper propertyMapper;
     private final UserService userService;
+    private final OccupancyMapper occupancyMapper;
 
     public PropertyResponseDTO createProperty(PropertyRegistrationDTO registrationDTO){
         if(propertyRepository.findByUnitNumber(registrationDTO.getUnitNumber()).isPresent()){
@@ -51,9 +54,15 @@ public class PropertyService {
         CustomUserDetails userDetails=(CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User user=userService.findUSerByEmail(userDetails.getUsername());
 
-        return user.getOccupancies().stream()
+        List<Occupancy> activeOccupancies=user.getOccupancies().stream()
                 .filter(o->o.getEndDate()==null)
-                //.map(Occupancy::getProperty)//Convert Occupancy to property
+                .toList();
+
+        if(activeOccupancies.isEmpty()) {
+            throw new NotFoundException("No Active occupancies found for the user");
+        }
+
+        return activeOccupancies.stream()
                 .map(propertyMapper::selectedPropertyToDTO)
                 .toList();
     }

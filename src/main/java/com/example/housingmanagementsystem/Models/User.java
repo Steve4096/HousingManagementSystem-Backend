@@ -54,7 +54,8 @@ public class User extends Auditable {
     private String phoneNumber;
 
     @Column(nullable = false)
-    private UserStatus status;
+    @Builder.Default
+    private UserStatus status=UserStatus.ACTIVE;
 
     @ToString.Exclude
     @Column(nullable = false)

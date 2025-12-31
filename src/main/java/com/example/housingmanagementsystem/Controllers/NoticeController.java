@@ -1,10 +1,11 @@
 package com.example.housingmanagementsystem.Controllers;
 
+import com.example.housingmanagementsystem.DTOs.CountResponseDTO;
 import com.example.housingmanagementsystem.DTOs.NoticeFillingDTO;
 import com.example.housingmanagementsystem.DTOs.NoticeResponseDTO;
-import com.example.housingmanagementsystem.Models.Notice;
 import com.example.housingmanagementsystem.Services.NoticeService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -22,23 +23,34 @@ public class NoticeController {
         this.noticeService = noticeService;
     }
 
-    /*@PostMapping("/create")
+    @PostMapping("/create")
     public ResponseEntity<NoticeResponseDTO> createNotice(@Valid @RequestBody NoticeFillingDTO noticeFillingDTO) {
-        NoticeResponseDTO noticeResponseDTO = noticeService.saveNotice(noticeFillingDTO);
+        NoticeResponseDTO noticeResponseDTO = noticeService.fileNotice(noticeFillingDTO);
 
         //Returns location of the notice saved
-        URI location = ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/notices/{id}").buildAndExpand(noticeResponseDTO.getUser()).toUri();
+        URI location = ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/notices/{id}").buildAndExpand(noticeResponseDTO.getId()).toUri();
 
         return ResponseEntity.created(location).body(noticeResponseDTO);
-    }*/
+    }
 
     @GetMapping
     public ResponseEntity<List<NoticeResponseDTO>> fetchAllNotices(){
         return ResponseEntity.ok().body(noticeService.fetchAllNoticesFiled());
     }
 
-    @PatchMapping("/update")
-    public ResponseEntity<NoticeResponseDTO> updateNotice(@PathVariable Long id,@Valid @RequestBody NoticeFillingDTO noticeFillingDTO){
-        return ResponseEntity.ok().body(noticeService.updateExistingNotice(id,noticeFillingDTO));
+    @GetMapping("/unread")
+    public ResponseEntity<List<NoticeResponseDTO>> fetchUnreadNotices(){
+        return ResponseEntity.ok().body(noticeService.fetchUnreadNotices());
+    }
+
+    @GetMapping("/unread/count")
+    public CountResponseDTO countUnreadNotices(){
+        return new CountResponseDTO(noticeService.countUnreadNotices());
+    }
+
+    @PatchMapping("{id}/read")
+    public ResponseEntity markNoticeAsRead(@PathVariable Long id){
+        noticeService.markNoticeAsRead(id);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }
