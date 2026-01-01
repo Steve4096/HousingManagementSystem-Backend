@@ -1,6 +1,6 @@
 package com.example.housingmanagementsystem.UtilityClasses;
 
-public enum ComplaintTypes {
+public enum ComplaintCategory {
     ADMINISTRATIVE,
     MAINTENANCE,
     OTHER

@@ -61,7 +61,7 @@ public class User extends Auditable {
     @Column(nullable = false)
     private String passwordHash;
 
-    @ManyToMany(mappedBy = "users",fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "user",fetch = FetchType.LAZY)
     private List<Complaint> complaints;
 
     @OneToMany(fetch = FetchType.LAZY,cascade = CascadeType.ALL,mappedBy = "user")

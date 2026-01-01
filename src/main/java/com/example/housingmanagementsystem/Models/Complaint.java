@@ -2,7 +2,8 @@ package com.example.housingmanagementsystem.Models;
 
 import com.example.housingmanagementsystem.Common.Auditable;
 import com.example.housingmanagementsystem.UtilityClasses.ComplaintStatus;
-import com.example.housingmanagementsystem.UtilityClasses.ComplaintTypes;
+import com.example.housingmanagementsystem.UtilityClasses.ComplaintCategory;
+import com.example.housingmanagementsystem.UtilityClasses.LegibilityStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -14,15 +15,17 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "complaints")
 @EqualsAndHashCode(callSuper = true,onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
+@Builder
 public class Complaint extends Auditable {
 
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ComplaintTypes complaintTypes;
+    private ComplaintCategory complaintCategory;
 
     @NotBlank
     private String complaintDescription;
@@ -30,11 +33,20 @@ public class Complaint extends Auditable {
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ComplaintStatus status;
+    @Builder.Default
+    private ComplaintStatus status=ComplaintStatus.PENDING;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "user_complaints", joinColumns = @JoinColumn(name = "complaint_id"),inverseJoinColumns = @JoinColumn(name = "user_id"))
-    private List<User> users;
+    @Builder.Default
+    @Column(name = "Read/Unread")
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    private LegibilityStatus readOrUnread=LegibilityStatus.UNREAD;
+
+   // @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id",nullable = false)
+    //@JoinTable(name = "user_complaints", joinColumns = @JoinColumn(name = "complaint_id"),inverseJoinColumns = @JoinColumn(name = "user_id"))
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="occupancy_id",nullable = false)
