@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface WaterTankRepository extends JpaRepository<WaterTank,Long> {
+    boolean existsByTankName(String tankName);
 }

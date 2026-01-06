@@ -28,7 +28,7 @@ public class WaterTank extends Auditable {
     private String tankName;
 
     @NotNull(message = "Each tank capacity must be declared")
-    @Positive
+    @Positive(message = "Tank capacity must be greater than 0")
     @Column(nullable = false)
     private int capacity;
 
@@ -39,5 +39,6 @@ public class WaterTank extends Auditable {
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private WaterLevelStatus status;
+    @Builder.Default
+    private WaterLevelStatus status=WaterLevelStatus.EMPTY;
 }

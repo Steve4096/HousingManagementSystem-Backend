@@ -1,6 +1,7 @@
 package com.example.housingmanagementsystem.Services;
 
 import com.example.housingmanagementsystem.DTOs.WaterTankCreationDTO;
+import com.example.housingmanagementsystem.DTOs.WaterTankResponseDTO;
 import com.example.housingmanagementsystem.DTOs.WaterTankSuccessfulCreationDTO;
 import com.example.housingmanagementsystem.Exceptions.NotFoundException;
 import com.example.housingmanagementsystem.Mappers.WaterTankMapper;
@@ -10,6 +11,8 @@ import com.example.housingmanagementsystem.UtilityClasses.WaterLevelStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class WaterTankService {
@@ -17,77 +20,76 @@ public class WaterTankService {
     private final WaterTankRepository waterTankRepository;
     private final WaterTankMapper waterTankMapper;
 
-    public WaterTankSuccessfulCreationDTO saveWaterTankDetails(WaterTankCreationDTO tankCreationDTO){
-        WaterTank waterTank=waterTankMapper.toEntity(tankCreationDTO);
-        waterTank.setWaterVolume(0);
-        waterTank.setStatus(WaterLevelStatus.EMPTY);
-        WaterTank savedWaterTankDetails=waterTankRepository.save(waterTank);
-        return waterTankMapper.toDTO(savedWaterTankDetails);
+
+    // Create a new tank
+    public WaterTankSuccessfulCreationDTO createWaterTank(WaterTankCreationDTO dto) {
+        if (waterTankRepository.existsByTankName(dto.getTankName())) {
+            throw new IllegalArgumentException("A tank with this name already exists");
+        }
+
+        WaterTank tank = waterTankMapper.toEntity(dto);
+        tank.setWaterVolume(0);
+        tank.setStatus(WaterLevelStatus.EMPTY);
+
+        WaterTank saved = waterTankRepository.save(tank);
+        return waterTankMapper.toDTO(saved);
     }
 
-    public WaterTank adjustWaterLevel(Long id,int delta){
-        WaterTank tank=getTankById(id);
 
-        //Calculate new volume
-        int newVolume=tank.getWaterVolume()+delta;
+    // Adjust water by litres
+    public WaterTankResponseDTO adjustWaterVolume(Long id, int litres) {
+        WaterTank tank = getTankById(id);
+        return adjustTankVolume(tank, litres);
+    }
 
-        //ensure volume is within bounds
-        newVolume=Math.max(0,Math.min(tank.getCapacity(),newVolume));
+
+    // Fill tank completely
+    public WaterTankResponseDTO fillTank(Long id) {
+        WaterTank tank = getTankById(id);
+        int litresToAdd = tank.getCapacity() - tank.getWaterVolume();
+        return adjustTankVolume(tank, litresToAdd);
+    }
+
+    // Drain tank completely
+    public WaterTankResponseDTO drainTank(Long id) {
+        WaterTank tank = getTankById(id);
+        int litresToRemove = -tank.getWaterVolume();
+        return adjustTankVolume(tank, litresToRemove);
+    }
+
+
+    // Core method: adjust tank volume and persist
+    private WaterTankResponseDTO adjustTankVolume(WaterTank tank, int delta) {
+        int newVolume = Math.max(0, Math.min(tank.getCapacity(), tank.getWaterVolume() + delta));
         tank.setWaterVolume(newVolume);
 
-        //determine status
-        determineWaterTankStatus(tank);
-
-        //save
-        return waterTankRepository.save(tank);
-    }
-
-    //Helper method to fill completely
-    public WaterTank fillWaterTank(Long id){
-        WaterTank tank=getTankById(id);
-
-        int delta=tank.getCapacity() - tank.getWaterVolume();
-        return adjustWaterLevel(id,delta);
-    }
-
-    //Helper method to drain completely
-    public WaterTank drainWaterTank(Long id){
-        WaterTank tank=getTankById(id);
-
-        int delta=-tank.getWaterVolume();
-        return adjustWaterLevel(id,delta);
+        updateTankStatus(tank);
+        WaterTank updated = waterTankRepository.save(tank);
+        return waterTankMapper.toDisplayDTO(updated);
     }
 
 
-//    public void fillWaterTank(Long id){
-//        WaterTank tank=waterTankRepository.findById(id)
-//                .orElseThrow(()-> new  NotFoundException("Tank doesn't exist"));
-//
-//        tank.setWaterVolume(tank.getCapacity());
-//        determineWaterTankStatus(tank);
-//        waterTankRepository.save(tank);
-//    }
-//
-//    public void drainWaterTank(Long id){
-//        WaterTank tank=waterTankRepository.findById(id)
-//                .orElseThrow(()->new NotFoundException("Tank doesn't exist"));
-//
-//        tank.setWaterVolume(0);
-//        determineWaterTankStatus(tank);
-//        waterTankRepository.save(tank);
-//    }
+    // Update status based on volume
+    private void updateTankStatus(WaterTank tank) {
+        double ratio = (double) tank.getWaterVolume() / tank.getCapacity();
 
-    public WaterLevelStatus determineWaterTankStatus(WaterTank tank){
-        double quotient=(double) tank.getWaterVolume()/tank.getCapacity();
-        if(quotient>1) tank.setStatus(WaterLevelStatus.FULL);
-         else if (quotient>0.4)  tank.setStatus(WaterLevelStatus.SUFFICIENT);
-         else if (quotient>0.2) tank.setStatus(WaterLevelStatus.LOW);
-         else if (quotient>0) tank.setStatus(WaterLevelStatus.CRITICAL);
-         else tank.setStatus(WaterLevelStatus.EMPTY);
-        return tank.getStatus();
+        if (ratio >= 1.0) tank.setStatus(WaterLevelStatus.FULL);
+        else if (ratio > 0.75) tank.setStatus(WaterLevelStatus.SUFFICIENT);
+        else if (ratio > 0.5) tank.setStatus(WaterLevelStatus.MID);
+        else if (ratio > 0.25) tank.setStatus(WaterLevelStatus.LOW);
+        else if (ratio > 0) tank.setStatus(WaterLevelStatus.CRITICAL);
+        else tank.setStatus(WaterLevelStatus.EMPTY);
     }
 
-    private WaterTank getTankById(Long id){
+    // Get all tanks
+    public List<WaterTankResponseDTO> getAllTanks() {
+        return waterTankRepository.findAll().stream()
+                .map(waterTankMapper::toDisplayDTO)
+                .toList();
+    }
+
+    // Private helper: fetch by ID
+    private WaterTank getTankById(Long id) {
         return waterTankRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Tank doesn't exist"));
     }
