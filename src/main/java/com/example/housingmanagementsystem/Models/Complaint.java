@@ -9,7 +9,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
-import java.util.List;
 
 @Entity
 @Getter
@@ -25,9 +24,12 @@ public class Complaint extends Auditable {
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @ToString.Include
     private ComplaintCategory complaintCategory;
 
     @NotBlank
+    @Column(nullable = false)
+    @ToString.Include
     private String complaintDescription;
 
     @NotNull
@@ -37,18 +39,16 @@ public class Complaint extends Auditable {
     private ComplaintStatus status=ComplaintStatus.PENDING;
 
     @Builder.Default
-    @Column(name = "Read/Unread")
+    @Column(nullable = false)
     @NotNull
     @Enumerated(EnumType.STRING)
-    private LegibilityStatus readOrUnread=LegibilityStatus.UNREAD;
+    private LegibilityStatus legibilityStatus=LegibilityStatus.UNREAD;
 
-   // @ManyToMany(fetch = FetchType.LAZY)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id",nullable = false)
-    //@JoinTable(name = "user_complaints", joinColumns = @JoinColumn(name = "complaint_id"),inverseJoinColumns = @JoinColumn(name = "user_id"))
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="occupancy_id",nullable = false)
-    private Occupancy occupancy;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name="occupancy_id",nullable = false)
+//    private Occupancy occupancy;
 }

@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(DuplicateException.class)
-    public ResponseEntity<String> handleDuplicate(DuplicateException exception){
+    @ExceptionHandler({ConflictException.class,DuplicateException.class})
+    public ResponseEntity<String> handleDuplicate(RuntimeException exception){
         return ResponseEntity.status(HttpStatus.CONFLICT).body(exception.getMessage());
     }
 

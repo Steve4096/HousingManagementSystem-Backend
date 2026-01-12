@@ -3,6 +3,9 @@ package com.example.housingmanagementsystem.Services;
 import com.example.housingmanagementsystem.DTOs.ComplaintFillingDTO;
 import com.example.housingmanagementsystem.DTOs.ComplaintResponseDTO;
 import com.example.housingmanagementsystem.DTOs.ComplaintUpdateDTO;
+import com.example.housingmanagementsystem.Exceptions.AccessDeniedException;
+import com.example.housingmanagementsystem.Exceptions.ConflictException;
+import com.example.housingmanagementsystem.Exceptions.DuplicateException;
 import com.example.housingmanagementsystem.Exceptions.NotFoundException;
 import com.example.housingmanagementsystem.Mappers.ComplaintMapper;
 import com.example.housingmanagementsystem.Models.Complaint;
@@ -38,10 +41,17 @@ public class ComplaintService {
         return complaintMapper.toDTO(savedComplaint);
     }
 
-    //Add a security check that only allows you to edit a complaint if you're the owner of the complaint or the admin
+    //Update a complaint only if you are the author or Admin
     public ComplaintResponseDTO editComplaint(Long id, ComplaintUpdateDTO complaintUpdateDTO){
         Complaint complaint=complaintRepository.findById(id)
                 .orElseThrow(()->new NotFoundException("Complaint not found"));
+
+        CustomUserDetails userDetails=(CustomUserDetails) SecurityContextHolder.getContext().
+                getAuthentication().getPrincipal();
+
+        if(!userDetails.getUsername().equals(complaint.getUser().getEmailAddress()) && !userDetails.getAuthorities().stream().anyMatch(a->a.getAuthority().equals("ROLE_ADMIN"))){
+            throw new AccessDeniedException("You do not have the permission to modify this record");
+        }
 
         //Uses mapstruct to update changed fields in the entity
         complaintMapper.updateComplaint(complaintUpdateDTO,complaint);
@@ -49,6 +59,34 @@ public class ComplaintService {
         Complaint savedComplaint=complaintRepository.save(complaint);
 
         //Returns the saved instance as a DTO
+        return complaintMapper.toDTO(savedComplaint);
+    }
+
+    public ComplaintResponseDTO markAsRead(Long id){
+        Complaint complaint=complaintRepository.findById(id)
+                .orElseThrow(()->new NotFoundException("Complaint not found"));
+
+        if(complaint.getLegibilityStatus().equals(LegibilityStatus.READ)){
+            return complaintMapper.toDTO(complaint);
+        }
+
+        complaint.setLegibilityStatus(LegibilityStatus.READ);
+        Complaint savedComplaint=complaintRepository.save(complaint);
+
+        return complaintMapper.toDTO(savedComplaint);
+    }
+
+    public ComplaintResponseDTO markAsSolved(Long id){
+        Complaint complaint=complaintRepository.findById(id)
+                .orElseThrow(()->new NotFoundException("Complaint not found"));
+
+        if(complaint.getStatus().equals(ComplaintStatus.SOLVED)){
+            throw new ConflictException("Complaint already marked as solved");
+        }
+
+        complaint.setStatus(ComplaintStatus.SOLVED);
+        Complaint savedComplaint=complaintRepository.save(complaint);
+
         return complaintMapper.toDTO(savedComplaint);
     }
 
@@ -62,7 +100,7 @@ public class ComplaintService {
     public List<ComplaintResponseDTO> fetchPendingComplaints(){
         return complaintRepository.fetchPendingComplaints(ComplaintStatus.PENDING)
                 .stream()
-                .map(complaint -> complaintMapper.toDTO(complaint))
+                .map(complaintMapper::toDTO)
                 .toList();
     }
 

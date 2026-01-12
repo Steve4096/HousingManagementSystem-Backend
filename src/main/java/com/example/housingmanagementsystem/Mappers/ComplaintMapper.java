@@ -9,6 +9,9 @@ import org.mapstruct.*;
 @Mapper(componentModel = "spring")
 public interface ComplaintMapper {
     //Entity -> DTO
+    @Mapping(source = "complaintCategory", target = "category")
+    @Mapping(source = "complaintDescription", target = "description")
+    @Mapping(source = "user.fullName", target = "tenantName")
     ComplaintResponseDTO toDTO(Complaint complaint);
 
     //DTO -> Entity
