@@ -10,6 +10,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -36,4 +37,7 @@ public class Occupancy extends BaseEntity {
 
     @Column(name = "date_moved_out")
     private LocalDateTime endDate;
+
+    @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY,mappedBy = "occupancy")
+    private List<Payment> payments;
 }

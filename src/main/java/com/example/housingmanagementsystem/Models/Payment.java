@@ -2,8 +2,11 @@ package com.example.housingmanagementsystem.Models;
 
 import com.example.housingmanagementsystem.Common.BaseEntity;
 import com.example.housingmanagementsystem.UtilityClasses.LegibilityStatus;
+import com.example.housingmanagementsystem.UtilityClasses.PaymentFor;
+import com.example.housingmanagementsystem.UtilityClasses.PaymentMode;
 import com.example.housingmanagementsystem.UtilityClasses.TransactionStatus;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -28,13 +31,20 @@ public class Payment extends BaseEntity {
     private String transactionId;
 
     @ToString.Include
+    @DecimalMin(value = "850",message = "The minimum amount payable is 850")
     @Column(nullable = false,updatable = false)
     private BigDecimal amount;
 
     @ToString.Include
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "occupancy_id",nullable = false)
-    private Occupancy occupancy;
+    @Enumerated(EnumType.STRING)
+    @NotNull
+    @Column(nullable = false)
+    private PaymentFor paymentFor;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @NotNull
+    private PaymentMode paymentMode;
 
     @CreatedDate
     @Column(nullable = false,updatable = false)
@@ -43,12 +53,18 @@ public class Payment extends BaseEntity {
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private TransactionStatus transactionStatus;
+    @Builder.Default
+    private TransactionStatus transactionStatus=TransactionStatus.PENDING;
 
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private LegibilityStatus legibilityStatus=LegibilityStatus.UNREAD;
 
-    @OneToOne(mappedBy = "payment")
+    @ToString.Include
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "occupancy_id",nullable = false)
+    private Occupancy occupancy;
+
+    @OneToOne(mappedBy = "payment",cascade = CascadeType.REMOVE)
     private Receipt receipt;
 }
