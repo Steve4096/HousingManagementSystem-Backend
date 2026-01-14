@@ -26,7 +26,6 @@ public class PropertyService {
     private final PropertyRepository propertyRepository;
     private final PropertyMapper propertyMapper;
     private final UserService userService;
-    private final OccupancyMapper occupancyMapper;
 
     public PropertyResponseDTO createProperty(PropertyRegistrationDTO registrationDTO){
         if(propertyRepository.findByUnitNumber(registrationDTO.getUnitNumber()).isPresent()){
@@ -65,6 +64,11 @@ public class PropertyService {
         return activeOccupancies.stream()
                 .map(propertyMapper::selectedPropertyToDTO)
                 .toList();
+    }
+
+    public Property findById(Long id){
+        return propertyRepository.findById(id)
+                .orElseThrow(()->new NotFoundException("Property does not exist"));
     }
 
     public boolean deleteProperty(Long id){

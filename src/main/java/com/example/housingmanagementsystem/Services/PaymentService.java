@@ -44,11 +44,11 @@ public class PaymentService {
 
     @Transactional
     public PaymentResponseDTO savePayment(MakePaymentDTO paymentDTO){
-        //Get currently logged-in user from spring security
-        CustomUserDetails userDetails=(CustomUserDetails) SecurityContextHolder.getContext().getAuthentication()
-                .getPrincipal();
-
-        User user=userService.findUSerByEmail(userDetails.getUsername());
+//        //Get currently logged-in user from spring security
+//        CustomUserDetails userDetails=(CustomUserDetails) SecurityContextHolder.getContext().getAuthentication()
+//                .getPrincipal();
+//
+//        User user=userService.findUSerByEmail(userDetails.getUsername());
 
         //Verify the occupancy exists
         Occupancy occupancy=occupancyService.findOccupancy(paymentDTO.getOccupancyId())
@@ -63,8 +63,6 @@ public class PaymentService {
 
         String transactionId=generateUniqueTransactionId();
         payment.setTransactionId(transactionId);
-        payment.setLegibilityStatus(LegibilityStatus.UNREAD);
-
 
         //Save the payment before extracting its ID
         Payment savedPayment=paymentRepository.save(payment);

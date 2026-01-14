@@ -2,6 +2,7 @@ package com.example.housingmanagementsystem.Services;
 
 import com.example.housingmanagementsystem.DTOs.OccupancyCreationDTO;
 import com.example.housingmanagementsystem.DTOs.OccupancyResponseDTO;
+import com.example.housingmanagementsystem.DTOs.TenantRegistrationDTO;
 import com.example.housingmanagementsystem.Exceptions.NotFoundException;
 import com.example.housingmanagementsystem.Mappers.OccupancyMapper;
 import com.example.housingmanagementsystem.Models.Notice;
@@ -28,28 +29,10 @@ public class OccupancyService {
 
     private final OccupancyRepository occupancyRepository;
     private final OccupancyMapper occupancyMapper;
-    private final UserRepository userRepository;
-    private final PropertyRepository propertyRepository;
     private final UserService userService;
+    private final PropertyService propertyService;
 
-    public OccupancyResponseDTO createOccupancy(OccupancyCreationDTO creationDTO){
-        Long userId=creationDTO.getUserId();
-        Long propertyId= creationDTO.getPropertyId();
-
-        User newUser=userRepository.findById(userId)
-                .orElseThrow(()->new NotFoundException("User not found"));
-
-        Property newProperty=propertyRepository.findById(propertyId)
-                .orElseThrow(()->new NotFoundException("Property not found"));
-
-        Occupancy occupancy=new Occupancy();
-        occupancy.setUser(newUser);
-        occupancy.setProperty(newProperty);
-
-        Occupancy savedOcccupancy=occupancyRepository.save(occupancy);
-
-        return occupancyMapper.toDTO(savedOcccupancy);
-    }
+    //public OccupancyResponseDTO createOccupancy(){}
 
     public List<OccupancyResponseDTO> fetchAllOccupancies(){
         return occupancyRepository.findAll()

@@ -1,12 +1,14 @@
 package com.example.housingmanagementsystem.Services;
 
-import com.example.housingmanagementsystem.DTOs.TenantRegistrationDTO;
-import com.example.housingmanagementsystem.DTOs.UserRegistrationDTO;
-import com.example.housingmanagementsystem.DTOs.UserResponseDTO;
-import com.example.housingmanagementsystem.DTOs.UserUpdateDTO;
+import com.example.housingmanagementsystem.DTOs.*;
 import com.example.housingmanagementsystem.Exceptions.AccessDeniedException;
+import com.example.housingmanagementsystem.Exceptions.DuplicateException;
+import com.example.housingmanagementsystem.Exceptions.NotFoundException;
 import com.example.housingmanagementsystem.Mappers.UserMapper;
+import com.example.housingmanagementsystem.Models.Occupancy;
+import com.example.housingmanagementsystem.Models.Property;
 import com.example.housingmanagementsystem.Models.User;
+import com.example.housingmanagementsystem.Repositories.OccupancyRepository;
 import com.example.housingmanagementsystem.Repositories.UserRepository;
 import com.example.housingmanagementsystem.Security.CustomUserDetails;
 import com.example.housingmanagementsystem.UtilityClasses.PasswordGenerator;
@@ -32,6 +34,9 @@ public class UserService implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
     private final EmailService emailService;
+    private final OccupancyService occupancyService;
+    private final PropertyService propertyService;
+    private final OccupancyRepository occupancyRepository;
 
 
    // @PreAuthorize("hasAnyRole('ADMIN','LANDLORD')")
@@ -57,14 +62,29 @@ public class UserService implements UserDetailsService {
         return userMapper.toDTO(savedUser);
     }
 
+    @Transactional
    // @PreAuthorize("hasAnyRole('ADMIN','LANDLORD')")
     public UserResponseDTO registerTenant(TenantRegistrationDTO tenantDTO){
+        //Validate property
+        Property property=propertyService.findById(tenantDTO.getPropertyId());
+
+        if(occupancyRepository.existsByPropertyAndEndDateIsNull(property)){
+            throw new DuplicateException("Property is already occupied");
+        }
+
         User tenant=userMapper.toEntity(tenantDTO);
 
         //Handle fields not set in the DTO
         tenant.setRole(Role.TENANT);
 
         User savedTenant=saveUser(tenant);
+
+        Occupancy occupancy=new Occupancy();
+        occupancy.setUser(savedTenant);
+        occupancy.setProperty(property);
+
+        occupancyRepository.save(occupancy);
+
         return userMapper.toDTO(savedTenant);
     }
 
@@ -136,6 +156,11 @@ public class UserService implements UserDetailsService {
 
         userRepository.deleteById(toBeDeleted.getId());
         return true;
+    }
+
+    public User findById(Long id){
+        return userRepository.findById(id)
+                .orElseThrow(()->new NotFoundException("User not found"));
     }
 
     public User findUSerByEmail(String email){

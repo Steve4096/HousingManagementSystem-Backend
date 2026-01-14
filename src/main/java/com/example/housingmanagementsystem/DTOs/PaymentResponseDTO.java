@@ -1,5 +1,6 @@
 package com.example.housingmanagementsystem.DTOs;
 
+import com.example.housingmanagementsystem.UtilityClasses.PaymentFor;
 import com.example.housingmanagementsystem.UtilityClasses.TransactionStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,10 +16,11 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PaymentResponseDTO {
+    private long id;
     private String transactionId;
     private BigDecimal amount;
     private String tenantName;
     private String unitNumber;
-    private TransactionStatus status;
-    private LocalDateTime timeOfTransaction;
+    private TransactionStatus transactionStatus;
+    private LocalDateTime dateTimeOfTransaction;
 }

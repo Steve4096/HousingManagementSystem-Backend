@@ -13,9 +13,7 @@ public interface PaymentMapper {
     Payment toEntity(MakePaymentDTO makePaymentDTO);
 
     //Entity -> DTO
-    @Mapping(source = "payment.occupancy.user.fullName", target = "tenantName")
-    @Mapping(source = "payment.occupancy.property.unitNumber", target = "unitNumber")
-    @Mapping(source = "dateTimeOfTransaction", target = "timeOfTransaction")
-    @Mapping(source = "transactionStatus", target = "status")
+    @Mapping(source = "occupancy.user.fullName", target = "tenantName")
+    @Mapping(source = "occupancy.property.unitNumber", target = "unitNumber")
     PaymentResponseDTO toDTO(Payment payment);
 }

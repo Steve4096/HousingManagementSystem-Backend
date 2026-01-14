@@ -13,6 +13,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -25,6 +26,7 @@ import java.time.LocalDateTime;
 @ToString(onlyExplicitlyIncluded = true)
 @EntityListeners(AuditingEntityListener.class)
 public class Payment extends BaseEntity {
+
 
     @ToString.Include
     @Column(nullable = false,updatable = false,unique = true)
@@ -42,13 +44,16 @@ public class Payment extends BaseEntity {
     private PaymentFor paymentFor;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false,updatable = false)
     @NotNull
     private PaymentMode paymentMode;
 
+    @NotNull
     @CreatedDate
     @Column(nullable = false,updatable = false)
     private LocalDateTime dateTimeOfTransaction;
+
+    private LocalDate monthPaidFor;
 
     @NotNull
     @Enumerated(EnumType.STRING)

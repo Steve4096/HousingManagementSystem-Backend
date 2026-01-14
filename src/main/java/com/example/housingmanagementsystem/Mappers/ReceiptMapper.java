@@ -13,5 +13,7 @@ public interface ReceiptMapper {
     @Mapping(source = "payment.amount", target = "amount")
     @Mapping(source = "payment.occupancy.user.fullName", target = "tenantName")
     @Mapping(source = "payment.occupancy.property.unitNumber", target = "unitNumber")
+    @Mapping(source = "payment.paymentFor", target = "paymentFor")
+    @Mapping(source = "payment.monthPaidFor", target = "monthPaidFor")
     ReceiptResponseDTO toDTO(Receipt receipt);
 }
