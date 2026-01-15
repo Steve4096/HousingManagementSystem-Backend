@@ -6,11 +6,9 @@ import com.example.housingmanagementsystem.UtilityClasses.PaymentFor;
 import com.example.housingmanagementsystem.UtilityClasses.PaymentMode;
 import com.example.housingmanagementsystem.UtilityClasses.TransactionStatus;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -24,7 +22,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true,callSuper = true)
 @ToString(onlyExplicitlyIncluded = true)
-@EntityListeners(AuditingEntityListener.class)
 public class Payment extends BaseEntity {
 
 
@@ -33,7 +30,6 @@ public class Payment extends BaseEntity {
     private String transactionId;
 
     @ToString.Include
-    @DecimalMin(value = "850",message = "The minimum amount payable is 850")
     @Column(nullable = false,updatable = false)
     private BigDecimal amount;
 
@@ -48,7 +44,7 @@ public class Payment extends BaseEntity {
     @NotNull
     private PaymentMode paymentMode;
 
-    @NotNull
+
     @CreatedDate
     @Column(nullable = false,updatable = false)
     private LocalDateTime dateTimeOfTransaction;
@@ -70,6 +66,6 @@ public class Payment extends BaseEntity {
     @JoinColumn(name = "occupancy_id",nullable = false)
     private Occupancy occupancy;
 
-    @OneToOne(mappedBy = "payment",cascade = CascadeType.REMOVE)
+    @OneToOne(mappedBy = "payment",cascade = CascadeType.ALL,orphanRemoval = true)
     private Receipt receipt;
 }

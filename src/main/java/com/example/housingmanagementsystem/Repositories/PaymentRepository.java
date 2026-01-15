@@ -12,7 +12,7 @@ import java.util.List;
 public interface PaymentRepository extends JpaRepository<Payment,Long> {
     long countByLegibilityStatus(LegibilityStatus legibilityStatus);
     long countByTransactionStatus(TransactionStatus status);
-    List<Payment> findAllByLegiblityStatus(LegibilityStatus status);
+    List<Payment> findAllByLegibilityStatus(LegibilityStatus status);
     List<Payment> findAllByTransactionStatus(TransactionStatus status);
     boolean existsByTransactionId(String id);
 }

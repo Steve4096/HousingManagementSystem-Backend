@@ -10,6 +10,7 @@ import org.mapstruct.Mapping;
 public interface PaymentMapper {
 
     //DTO -> Entity
+    @Mapping(target = "receipt",ignore = true)
     Payment toEntity(MakePaymentDTO makePaymentDTO);
 
     //Entity -> DTO

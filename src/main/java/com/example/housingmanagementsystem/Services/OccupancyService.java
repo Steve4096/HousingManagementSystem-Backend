@@ -1,19 +1,12 @@
 package com.example.housingmanagementsystem.Services;
 
-import com.example.housingmanagementsystem.DTOs.OccupancyCreationDTO;
 import com.example.housingmanagementsystem.DTOs.OccupancyResponseDTO;
-import com.example.housingmanagementsystem.DTOs.TenantRegistrationDTO;
 import com.example.housingmanagementsystem.Exceptions.NotFoundException;
 import com.example.housingmanagementsystem.Mappers.OccupancyMapper;
-import com.example.housingmanagementsystem.Models.Notice;
 import com.example.housingmanagementsystem.Models.Occupancy;
-import com.example.housingmanagementsystem.Models.Property;
 import com.example.housingmanagementsystem.Models.User;
 import com.example.housingmanagementsystem.Repositories.OccupancyRepository;
-import com.example.housingmanagementsystem.Repositories.PropertyRepository;
-import com.example.housingmanagementsystem.Repositories.UserRepository;
 import com.example.housingmanagementsystem.Security.CustomUserDetails;
-import com.example.housingmanagementsystem.UtilityClasses.UserStatus;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;

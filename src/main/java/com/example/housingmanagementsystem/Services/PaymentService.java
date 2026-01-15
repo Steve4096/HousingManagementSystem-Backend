@@ -1,21 +1,19 @@
 package com.example.housingmanagementsystem.Services;
 
 import com.example.housingmanagementsystem.Common.IdGenerator;
-import com.example.housingmanagementsystem.DTOs.CountResponseDTO;
 import com.example.housingmanagementsystem.DTOs.MakePaymentDTO;
 import com.example.housingmanagementsystem.DTOs.PaymentResponseDTO;
-import com.example.housingmanagementsystem.DTOs.ReceiptCreationDTO;
+import com.example.housingmanagementsystem.Exceptions.DuplicateException;
 import com.example.housingmanagementsystem.Exceptions.NotFoundException;
 import com.example.housingmanagementsystem.Mappers.PaymentMapper;
 import com.example.housingmanagementsystem.Models.Occupancy;
 import com.example.housingmanagementsystem.Models.Payment;
-import com.example.housingmanagementsystem.Models.User;
+import com.example.housingmanagementsystem.Models.Receipt;
 import com.example.housingmanagementsystem.Repositories.PaymentRepository;
-import com.example.housingmanagementsystem.Security.CustomUserDetails;
+import com.example.housingmanagementsystem.Repositories.ReceiptRepository;
 import com.example.housingmanagementsystem.UtilityClasses.LegibilityStatus;
 import com.example.housingmanagementsystem.UtilityClasses.TransactionStatus;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,9 +25,8 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final PaymentMapper paymentMapper;
-    private final UserService userService;
     private final OccupancyService occupancyService;
-    private final ReceiptService receiptService;
+    private final ReceiptRepository receiptRepository;
 
     public String generateUniqueTransactionId() {
         String id;
@@ -41,42 +38,50 @@ public class PaymentService {
         return id;
     }
 
+    public String generateUniqueReceiptNumber() {
+        String id;
+        do {
+            id = "RCPT" + IdGenerator.randomString(6);
+        } while (receiptRepository.existsByReceiptNumber(id));
+
+        return id;
+    }
+
 
     @Transactional
     public PaymentResponseDTO savePayment(MakePaymentDTO paymentDTO){
-//        //Get currently logged-in user from spring security
-//        CustomUserDetails userDetails=(CustomUserDetails) SecurityContextHolder.getContext().getAuthentication()
-//                .getPrincipal();
-//
-//        User user=userService.findUSerByEmail(userDetails.getUsername());
-
         //Verify the occupancy exists
         Occupancy occupancy=occupancyService.findOccupancy(paymentDTO.getOccupancyId())
                 .orElseThrow(()->new NotFoundException("Occupancy does not exist"));
 
-
-
-        //Setting the occupancy
        // Payment payment=new Payment();
         Payment payment=paymentMapper.toEntity(paymentDTO);
         payment.setOccupancy(occupancy);
 
         String transactionId=generateUniqueTransactionId();
         payment.setTransactionId(transactionId);
+        payment.setTransactionStatus(TransactionStatus.PENDING);
 
         //Save the payment before extracting its ID
         Payment savedPayment=paymentRepository.save(payment);
 
-        //Pass the payment ID to the receipt creation DTO
-//        ReceiptCreationDTO receiptCreationDTO=new ReceiptCreationDTO();
-//        Long paymentId=savedPayment.getId();
-//        receiptCreationDTO.setPaymentId(paymentId);
-//
-//        //Save the receipt
-//        receiptService.saveReceipt(receiptCreationDTO);
-        receiptService.saveReceipt(new ReceiptCreationDTO(savedPayment.getId()));
+        if(receiptRepository.existsByPayment(savedPayment)){
+            throw new DuplicateException("A receipt has already been made for this payment");
+        }
+
+        Receipt receipt=new Receipt();
+        String receiptNumber=generateUniqueReceiptNumber();
+        receipt.setPayment(savedPayment);
+        receipt.setReceiptNumber(receiptNumber);
+
+        Receipt savedReceipt=receiptRepository.save(receipt);
+        savedPayment.setReceipt(savedReceipt);
 
         return paymentMapper.toDTO(savedPayment);
+    }
+
+    private void markPaymentAsSuccessful(Payment payment){
+
     }
 
     public long totalNumberOfPayments(){
@@ -102,7 +107,7 @@ public class PaymentService {
     }
 
     public List<PaymentResponseDTO> fetchUnreadPayments(){
-        return paymentRepository.findAllByLegiblityStatus(LegibilityStatus.UNREAD)
+        return paymentRepository.findAllByLegibilityStatus(LegibilityStatus.UNREAD)
                 .stream()
                 .map(paymentMapper::toDTO)
                 .toList();
@@ -121,10 +126,4 @@ public class PaymentService {
                 .map(paymentMapper::toDTO)
                 .toList();
     }
-
-    public Payment findById(Long id){
-        return paymentRepository.findById(id)
-                .orElseThrow(()->new NotFoundException("Payment not found"));
-    }
-
 }

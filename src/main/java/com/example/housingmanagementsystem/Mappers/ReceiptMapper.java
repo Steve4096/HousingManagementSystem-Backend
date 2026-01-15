@@ -1,6 +1,5 @@
 package com.example.housingmanagementsystem.Mappers;
 
-import com.example.housingmanagementsystem.DTOs.ReceiptCreationDTO;
 import com.example.housingmanagementsystem.DTOs.ReceiptResponseDTO;
 import com.example.housingmanagementsystem.Models.Receipt;
 import org.mapstruct.Mapper;

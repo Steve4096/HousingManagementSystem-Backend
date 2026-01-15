@@ -1,6 +1,5 @@
 package com.example.housingmanagementsystem.DTOs;
 
-import com.example.housingmanagementsystem.UtilityClasses.PaymentFor;
 import com.example.housingmanagementsystem.UtilityClasses.TransactionStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
