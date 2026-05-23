@@ -21,6 +21,12 @@ public class SecurityConfig {
 
                 //Determines which methods are open vs protected
                 .authorizeHttpRequests(auth->auth
+                                // Swagger endpoints
+//                                .requestMatchers(
+//                                        "/v3/api-docs/**",
+//                                        "/swagger-ui/**",
+//                                        "/swagger-ui.html"
+//                                ).permitAll()
 
                         //Open URLs/Public endpoints(no authentication required)
                        // .requestMatchers("/api/auth/**").permitAll() //login,refresh
@@ -29,10 +35,10 @@ public class SecurityConfig {
                                 //.requestMatchers("/api/**").hasRole("ADMIN")
 
                         //Methods accessible by admin and landlord
-                                //.requestMatchers("/api/**").hasAnyRole("ADMIN,LANDLORD")
+                               // .requestMatchers("/api/**").hasAnyRole("ADMIN","LANDLORD")
 
                         //Methods accessible by admins,landlords and users
-                               // .requestMatchers("/api/").hasAnyRole("ADMIN,LANDLORD,USER")
+                               // .requestMatchers("/api/").hasAnyRole("ADMIN","LANDLORD","USER")
 
                         //.anyRequest().authenticated() //everything else needs a token
 
@@ -45,10 +51,10 @@ public class SecurityConfig {
 
                         //STATELESS means each request is authenticated independently
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS) //JWT,no sessions
-                        );
+                        )
 
                 //JWT filter
-                //.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
 
         return httpSecurity.build();

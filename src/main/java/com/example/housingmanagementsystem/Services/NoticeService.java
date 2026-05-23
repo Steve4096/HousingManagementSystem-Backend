@@ -9,6 +9,7 @@ import com.example.housingmanagementsystem.Mappers.NoticeMapper;
 import com.example.housingmanagementsystem.Models.Notice;
 import com.example.housingmanagementsystem.Models.Occupancy;
 import com.example.housingmanagementsystem.Repositories.NoticeRepository;
+import com.example.housingmanagementsystem.Repositories.UserRepository;
 import com.example.housingmanagementsystem.Security.CustomUserDetails;
 import com.example.housingmanagementsystem.UtilityClasses.NoticeStatus;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,7 @@ public class NoticeService {
 
     private final NoticeRepository noticeRepository;
     private final NoticeMapper noticeMapper;
-    private final UserService userService;
+    private final UserRepository userRepository;
     private final OccupancyService occupancyService;
 
     public NoticeResponseDTO fileNotice(NoticeFillingDTO noticeFillingDTO){
@@ -31,7 +32,8 @@ public class NoticeService {
         com.example.housingmanagementsystem.Security.CustomUserDetails userDetails =(CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         //Find logged in user entity
-        com.example.housingmanagementsystem.Models.User user =userService.findUSerByEmail(userDetails.getUsername());
+        com.example.housingmanagementsystem.Models.User user =userRepository.findByEmailAddress(userDetails.getUsername())
+                .orElseThrow(()->new RuntimeException("User not found"));
 
         //Verify that the occupancy exists
         Occupancy occupancy=occupancyService.findOccupancy(noticeFillingDTO.getOccupancyId())

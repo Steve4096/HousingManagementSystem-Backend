@@ -6,6 +6,7 @@ import com.example.housingmanagementsystem.Mappers.OccupancyMapper;
 import com.example.housingmanagementsystem.Models.Occupancy;
 import com.example.housingmanagementsystem.Models.User;
 import com.example.housingmanagementsystem.Repositories.OccupancyRepository;
+import com.example.housingmanagementsystem.Repositories.UserRepository;
 import com.example.housingmanagementsystem.Security.CustomUserDetails;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -22,8 +23,8 @@ public class OccupancyService {
 
     private final OccupancyRepository occupancyRepository;
     private final OccupancyMapper occupancyMapper;
-    private final UserService userService;
     private final PropertyService propertyService;
+    private final UserRepository userRepository;
 
     //public OccupancyResponseDTO createOccupancy(){}
 
@@ -36,7 +37,8 @@ public class OccupancyService {
 
     public List<OccupancyResponseDTO> findLoggedInUserOccupancy(){
         CustomUserDetails userDetails=(CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        User loggedInUser=userService.findUSerByEmail(userDetails.getUsername());
+        User loggedInUser=userRepository.findByEmailAddress(userDetails.getUsername())
+                .orElseThrow(()->new RuntimeException("User not found"));
 
         return loggedInUser.getOccupancies().stream()
                 .map(occupancyMapper::toDTO)

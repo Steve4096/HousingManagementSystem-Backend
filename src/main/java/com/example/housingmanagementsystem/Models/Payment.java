@@ -8,6 +8,7 @@ import com.example.housingmanagementsystem.UtilityClasses.TransactionStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.hibernate.envers.Audited;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.math.BigDecimal;
@@ -22,6 +23,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true,callSuper = true)
 @ToString(onlyExplicitlyIncluded = true)
+@Audited
 public class Payment extends BaseEntity {
 
 

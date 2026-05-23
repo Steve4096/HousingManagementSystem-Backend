@@ -8,17 +8,17 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-
+import org.hibernate.envers.Audited;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "complaints")
 @EqualsAndHashCode(callSuper = true,onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
 @Builder
+@Audited
 public class Complaint extends Auditable {
 
     @NotNull
@@ -46,6 +46,7 @@ public class Complaint extends Auditable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id",nullable = false)
+    //@NotAudited
     private User user;
 
 //    @ManyToOne(fetch = FetchType.LAZY)

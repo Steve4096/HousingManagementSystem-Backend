@@ -30,7 +30,7 @@ public class UserController {
     }
 
     //@PreAuthorize("hasAnyRole('ADMIN','LANDLORD')")
-    @PostMapping
+    @PostMapping("/registerTenant")
     public ResponseEntity<UserResponseDTO> registerTenant(@Valid @RequestBody TenantRegistrationDTO registrationDTO){
         //return ResponseEntity.ok().body(userService.registerTenant(registrationDTO));
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.registerTenant(registrationDTO));
