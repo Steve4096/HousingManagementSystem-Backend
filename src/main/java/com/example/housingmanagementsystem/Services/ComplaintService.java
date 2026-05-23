@@ -11,6 +11,7 @@ import com.example.housingmanagementsystem.Mappers.ComplaintMapper;
 import com.example.housingmanagementsystem.Models.Complaint;
 import com.example.housingmanagementsystem.Models.User;
 import com.example.housingmanagementsystem.Repositories.ComplaintRepository;
+import com.example.housingmanagementsystem.Repositories.UserRepository;
 import com.example.housingmanagementsystem.Security.CustomUserDetails;
 import com.example.housingmanagementsystem.UtilityClasses.ComplaintStatus;
 import com.example.housingmanagementsystem.UtilityClasses.LegibilityStatus;
@@ -26,13 +27,15 @@ public class ComplaintService {
 
     private final ComplaintRepository complaintRepository;
     private final ComplaintMapper complaintMapper;
-    private final UserService userService;
+    private final UserRepository userRepository;
+    //private final UserService userService;
 
     public ComplaintResponseDTO saveComplaint(ComplaintFillingDTO complaintFillingDTO){
         CustomUserDetails userDetails=(CustomUserDetails) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
 
-        User user=userService.findUSerByEmail(userDetails.getUsername());
+        User user=userRepository.findByEmailAddress(userDetails.getUsername())
+                .orElseThrow(()->new RuntimeException("User not found"));
 
         Complaint complaint=complaintMapper.toEntity(complaintFillingDTO);
         complaint.setUser(user);
@@ -91,21 +94,21 @@ public class ComplaintService {
     }
 
     public List<ComplaintResponseDTO> fetchUnreadComplaints(){
-        return complaintRepository.fetchUnreadComplaints(LegibilityStatus.UNREAD)
+        return complaintRepository.findComplaintsByLegibilityStatus(LegibilityStatus.UNREAD)
                 .stream()
                 .map(complaintMapper::toDTO)
                 .toList();
     }
 
     public List<ComplaintResponseDTO> fetchPendingComplaints(){
-        return complaintRepository.fetchPendingComplaints(ComplaintStatus.PENDING)
+        return complaintRepository.findComplaintsByStatus(ComplaintStatus.PENDING)
                 .stream()
                 .map(complaintMapper::toDTO)
                 .toList();
     }
 
     public long countUnreadComplaints(){
-        return complaintRepository.countComplaintByLegibility(LegibilityStatus.UNREAD);
+        return complaintRepository.countComplaintByLegibilityStatus(LegibilityStatus.UNREAD);
     }
 
     public long countPendingComplaints(){

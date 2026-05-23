@@ -34,12 +34,11 @@ public class UserService implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
     private final EmailService emailService;
-    private final OccupancyService occupancyService;
-    private final PropertyService propertyService;
     private final OccupancyRepository occupancyRepository;
+    private final PropertyService propertyService;
 
 
-   // @PreAuthorize("hasAnyRole('ADMIN','LANDLORD')")
+    // @PreAuthorize("hasAnyRole('ADMIN','LANDLORD')")
     private User saveUser(User user){
         String passwordGenerated=PasswordGenerator.generatePassword();
         String hashedPassword=passwordEncoder.encode(passwordGenerated);
@@ -51,7 +50,7 @@ public class UserService implements UserDetailsService {
                 "Please use these credentials when logging in:"+"\n"+
                 "Email address:"+" "+to+"\n"+
                 "Password:"+" "+passwordGenerated;
-        emailService.sendSimpleEmail(to,subject,body);
+        //emailService.sendSimpleEmail(to,subject,body);
         return userRepository.save(user);
     }
 
@@ -87,20 +86,6 @@ public class UserService implements UserDetailsService {
 
         return userMapper.toDTO(savedTenant);
     }
-
-    //Load user details by email
-//    @Override
-//    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException{
-//        User user=userRepository.findByEmailAddress(username)
-//                .orElseThrow(()->new UsernameNotFoundException("User with email"+" "+username+" "+"not found"));
-//
-//        // Convert your User entity into Spring Security's UserDetails
-//        return org.springframework.security.core.userdetails.User.builder()
-//                .username(user.getEmailAddress())
-//                .password(user.getPasswordHash())
-//                .authorities(user.getRole().name())
-//                .build();
-//    }
 
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException{
         User user=userRepository.findByEmailAddress(username)

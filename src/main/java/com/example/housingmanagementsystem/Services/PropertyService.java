@@ -12,6 +12,7 @@ import com.example.housingmanagementsystem.Models.Occupancy;
 import com.example.housingmanagementsystem.Models.Property;
 import com.example.housingmanagementsystem.Models.User;
 import com.example.housingmanagementsystem.Repositories.PropertyRepository;
+import com.example.housingmanagementsystem.Repositories.UserRepository;
 import com.example.housingmanagementsystem.Security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,7 +26,7 @@ public class PropertyService {
 
     private final PropertyRepository propertyRepository;
     private final PropertyMapper propertyMapper;
-    private final UserService userService;
+    private final UserRepository userRepository;
 
     public PropertyResponseDTO createProperty(PropertyRegistrationDTO registrationDTO){
         if(propertyRepository.findByUnitNumber(registrationDTO.getUnitNumber()).isPresent()){
@@ -51,7 +52,9 @@ public class PropertyService {
 
     public List<SelectedPropertyDTO> getSpecificTenantActiveProperties(){
         CustomUserDetails userDetails=(CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        User user=userService.findUSerByEmail(userDetails.getUsername());
+        //User user=userService.findUSerByEmail(userDetails.getUsername());
+        User user=userRepository.findByEmailAddress(userDetails.getUsername())
+                .orElseThrow(()->new RuntimeException("User not found"));
 
         List<Occupancy> activeOccupancies=user.getOccupancies().stream()
                 .filter(o->o.getEndDate()==null)

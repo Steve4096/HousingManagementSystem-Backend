@@ -11,7 +11,7 @@ import java.util.List;
 @Repository
 public interface ComplaintRepository extends JpaRepository<Complaint,Long> {
     long countComplaintByStatus(ComplaintStatus status);
-    long countComplaintByLegibility(LegibilityStatus status);
-    List<Complaint> fetchUnreadComplaints(LegibilityStatus status);
-    List<Complaint> fetchPendingComplaints(ComplaintStatus status);
+    long countComplaintByLegibilityStatus(LegibilityStatus status);
+    List<Complaint> findComplaintsByLegibilityStatus(LegibilityStatus legibilityStatus);
+    List<Complaint> findComplaintsByStatus(ComplaintStatus status);
 }

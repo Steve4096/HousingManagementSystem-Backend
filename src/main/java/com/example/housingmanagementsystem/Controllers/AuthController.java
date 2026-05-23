@@ -4,6 +4,7 @@ import com.example.housingmanagementsystem.DTOs.AuthResponseDTO;
 import com.example.housingmanagementsystem.DTOs.LoginDTO;
 import com.example.housingmanagementsystem.DTOs.TokenRefreshRequestDTO;
 import com.example.housingmanagementsystem.Models.RefreshToken;
+import com.example.housingmanagementsystem.Repositories.UserRepository;
 import com.example.housingmanagementsystem.Services.RefreshTokenService;
 import com.example.housingmanagementsystem.Services.UserService;
 import com.example.housingmanagementsystem.UtilityClasses.JWTUtil;
@@ -29,6 +30,7 @@ public class AuthController {
     private final JWTUtil jwtUtil;
     private final UserDetailsService userDetailsService;
     private final RefreshTokenService refreshTokenService;
+    //private final UserRepository userRepository;
     private final UserService userService;
 
 
@@ -41,6 +43,7 @@ public class AuthController {
 
         // Extract user details from authentication
         var userDetails = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
+        //var user=userRepository.findByEmailAddress(userDetails.getUsername());
         var user=userService.findUSerByEmail(request.getEmailAddress());
 
         //Generate tokens
