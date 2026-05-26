@@ -5,6 +5,7 @@ import com.example.housingmanagementsystem.Services.ReceiptService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,5 +21,10 @@ public class ReceiptController {
     @GetMapping("/all")
     public ResponseEntity<List<ReceiptResponseDTO>> fetchAllReceipts(){
         return ResponseEntity.ok(receiptService.fetchAll());
+    }
+
+    @GetMapping("/(number)")
+    public ResponseEntity<ReceiptResponseDTO> fetchReceiptByReceiptNumber(@RequestBody String receiptNumber){
+        return ResponseEntity.ok(receiptService.fetchReceiptByNumber(receiptNumber));
     }
 }

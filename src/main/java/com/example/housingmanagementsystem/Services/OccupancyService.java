@@ -23,10 +23,8 @@ public class OccupancyService {
 
     private final OccupancyRepository occupancyRepository;
     private final OccupancyMapper occupancyMapper;
-    private final PropertyService propertyService;
     private final UserRepository userRepository;
 
-    //public OccupancyResponseDTO createOccupancy(){}
 
     public List<OccupancyResponseDTO> fetchAllOccupancies(){
         return occupancyRepository.findAll()
@@ -46,14 +44,27 @@ public class OccupancyService {
     }
 
     @Transactional
-    public void terminateOccupancy(Long occupancyId){
+    public boolean terminateOccupancy(Long occupancyId){
         Occupancy occupancy=occupancyRepository.findById(occupancyId)
                 .orElseThrow(()->new NotFoundException("Occupancy record does not exist"));
 
-        occupancy.setEndDate(LocalDateTime.now());
-        //User user=occupancy.getUser();
-        //user.setStatus(UserStatus.INACTIVE);
-        occupancyRepository.save(occupancy);
+            occupancy.setEndDate(LocalDateTime.now());
+            occupancyRepository.save(occupancy);
+            return true;
+    }
+
+    public List<OccupancyResponseDTO> activeOccupancies(){
+        return occupancyRepository.findByEndDateIsNull()
+                .stream()
+                .map(occupancyMapper::toDTO)
+                .toList();
+    }
+
+    public List<OccupancyResponseDTO> terminatedOccupancies(){
+        return occupancyRepository.findByEndDateIsNotNull()
+                .stream()
+                .map(occupancyMapper::toDTO)
+                .toList();
     }
 
     public Optional<Occupancy> findOccupancy(Long id){

@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Builder
 public class PropertyResponseDTO {
+    private Long id;
     private String unitNumber;
     private PropertyType propertyType;
     private BigDecimal rentAmount;

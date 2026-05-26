@@ -14,7 +14,7 @@ public interface PropertyMapper {
 
     //Entity -> DTO
     //Explicitly map ID from Property to PropertyResponseDTO
-    //@Mapping(source = "id", target = "id")
+    @Mapping(source = "id", target = "id")
     PropertyResponseDTO toDTO(Property property);
 
     //DTO -> Entity

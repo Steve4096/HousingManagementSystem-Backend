@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class OccupancyResponseDTO {
+    private Long id;
     private String fullName;
     private String unitNumber;
     private LocalDateTime startDate;
