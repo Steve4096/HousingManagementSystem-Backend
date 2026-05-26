@@ -4,13 +4,11 @@ import com.example.housingmanagementsystem.DTOs.TenantRegistrationDTO;
 import com.example.housingmanagementsystem.DTOs.UserRegistrationDTO;
 import com.example.housingmanagementsystem.DTOs.UserResponseDTO;
 import com.example.housingmanagementsystem.DTOs.UserUpdateDTO;
-import com.example.housingmanagementsystem.Models.User;
 import com.example.housingmanagementsystem.Services.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -37,7 +35,7 @@ public class UserController {
     }
 
     //@PreAuthorize("hasAnyRole('ADMIN','LANDLORD','USER')")
-    @PreAuthorize("#id==authentication.principal.id or hasRole('ADMIN')")
+    //@PreAuthorize("#id==authentication.principal.id or hasRole('ADMIN')")
     @PatchMapping("/{id}")
     public ResponseEntity<UserResponseDTO> updateUserDetails(@PathVariable Long id, @Valid @RequestBody UserUpdateDTO userUpdateDTO){
         return ResponseEntity.ok(userService.updateUserDetails(id, userUpdateDTO));

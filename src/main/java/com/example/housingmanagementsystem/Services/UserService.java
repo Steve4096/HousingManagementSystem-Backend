@@ -24,6 +24,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
+import java.util.Optional;
 
 
 @Service
@@ -40,52 +41,127 @@ public class UserService implements UserDetailsService {
 
     // @PreAuthorize("hasAnyRole('ADMIN','LANDLORD')")
     private User saveUser(User user){
-        String passwordGenerated=PasswordGenerator.generatePassword();
-        String hashedPassword=passwordEncoder.encode(passwordGenerated);
-        user.setStatus(UserStatus.ACTIVE);
-        user.setPasswordHash(hashedPassword);
-        String to= user.getEmailAddress();
-        String subject="Login credentials";
-        String body="Hello"+" "+user.getFullName()+"\n" +
-                "Please use these credentials when logging in:"+"\n"+
-                "Email address:"+" "+to+"\n"+
-                "Password:"+" "+passwordGenerated;
-        //emailService.sendSimpleEmail(to,subject,body);
         return userRepository.save(user);
     }
+//    private User saveUser(User user){
+//        String passwordGenerated=PasswordGenerator.generatePassword();
+//        String hashedPassword=passwordEncoder.encode(passwordGenerated);
+//        user.setStatus(UserStatus.ACTIVE);
+//        user.setPasswordHash(hashedPassword);
+//        String to= user.getEmailAddress();
+//        String subject="Login credentials";
+//        String body="Hello"+" "+user.getFullName()+"\n" +
+//                "Please use these credentials when logging in:"+"\n"+
+//                "Email address:"+" "+to+"\n"+
+//                "Password:"+" "+passwordGenerated;
+//        //emailService.sendSimpleEmail(to,subject,body);
+//        return userRepository.save(user);
+//    }
+
+    private String generateAndSetPassword(User user){
+        String rawPassword = PasswordGenerator.generatePassword();
+        String hashed = passwordEncoder.encode(rawPassword);
+
+        user.setPasswordHash(hashed);
+        return rawPassword; // return raw so you can email it
+    }
+
+
 
     //@PreAuthorize("hasRole('ADMIN')")
     public UserResponseDTO registerUser(UserRegistrationDTO userDTO){
-        User user=userMapper.toEntity(userDTO);
-        User savedUser=saveUser(user);
-        return userMapper.toDTO(savedUser);
+
+        User user = userMapper.toEntity(userDTO);
+        user.setStatus(UserStatus.ACTIVE);
+
+        String rawPassword = generateAndSetPassword(user);
+
+        User saved = saveUser(user);
+
+        emailService.sendSimpleEmail(
+                saved.getEmailAddress(),
+                "Login credentials",
+                "Your password is: " + rawPassword
+        );
+
+        return userMapper.toDTO(saved);
     }
 
-    @Transactional
-   // @PreAuthorize("hasAnyRole('ADMIN','LANDLORD')")
-    public UserResponseDTO registerTenant(TenantRegistrationDTO tenantDTO){
-        //Validate property
-        Property property=propertyService.findById(tenantDTO.getPropertyId());
+//    public UserResponseDTO registerUser(UserRegistrationDTO userDTO){
+//        User user=userMapper.toEntity(userDTO);
+//        User savedUser=saveUser(user);
+//        return userMapper.toDTO(savedUser);
+//    }
 
-        if(occupancyRepository.existsByPropertyAndEndDateIsNull(property)){
+    private User getOrCreateTenant(TenantRegistrationDTO dto) {
+
+        return userRepository.findByEmailAddress(dto.getEmailAddress())
+                .map(user -> {
+                    if (user.getStatus() == UserStatus.INACTIVE) {
+                        user.setStatus(UserStatus.ACTIVE);
+                        return saveUser(user);
+                    }
+                    return user;
+                })
+                .orElseGet(() -> {
+                    User newUser = userMapper.toEntity(dto);
+                    newUser.setRole(Role.TENANT);
+                    newUser.setStatus(UserStatus.ACTIVE);
+
+                    generateAndSetPassword(newUser);
+
+                    return saveUser(newUser);
+                });
+    }
+
+//    private User getOrCreateTenant(TenantRegistrationDTO dto) {
+//        return userRepository.findByEmailAddress(dto.getEmailAddress())
+//                .orElseGet(() -> {
+//                    User newUser = userMapper.toEntity(dto);
+//                    newUser.setRole(Role.TENANT);
+//                    return saveUser(newUser);
+//                });
+//    }
+
+    @Transactional
+    public UserResponseDTO registerTenant(TenantRegistrationDTO dto) {
+
+        User tenant = getOrCreateTenant(dto);
+
+        Property property = propertyService.findById(dto.getPropertyId());
+
+        if (occupancyRepository.existsByPropertyAndEndDateIsNull(property)) {
             throw new DuplicateException("Property is already occupied");
         }
 
-        User tenant=userMapper.toEntity(tenantDTO);
-
-        //Handle fields not set in the DTO
-        tenant.setRole(Role.TENANT);
-
-        User savedTenant=saveUser(tenant);
-
-        Occupancy occupancy=new Occupancy();
-        occupancy.setUser(savedTenant);
+        Occupancy occupancy = new Occupancy();
+        occupancy.setUser(tenant);
         occupancy.setProperty(property);
 
         occupancyRepository.save(occupancy);
 
-        return userMapper.toDTO(savedTenant);
+        return userMapper.toDTO(tenant);
     }
+
+//    @Transactional
+//    public UserResponseDTO registerTenant(TenantRegistrationDTO dto) {
+//
+//        User tenant = getOrCreateTenant(dto);
+//
+//        Property property = propertyService.findById(dto.getPropertyId());
+//
+//        if (occupancyRepository.existsByPropertyAndEndDateIsNull(property)) {
+//            throw new DuplicateException("Property is already occupied");
+//        }
+//
+//        Occupancy occupancy = new Occupancy();
+//        occupancy.setUser(tenant);
+//        occupancy.setProperty(property);
+//
+//        occupancyRepository.save(occupancy);
+//
+//        return userMapper.toDTO(tenant);
+//    }
 
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException{
         User user=userRepository.findByEmailAddress(username)
@@ -120,13 +196,6 @@ public class UserService implements UserDetailsService {
                 .toList();
     }
 
-//    public List<UserResponseDTO> fetchAllUsers(){
-//        return userRepository.findAll()
-//                .stream()
-//                .map(userMapper::toDTO)
-//                .collect(Collectors.groupingBy()
-//    }
-
    // @PreAuthorize("hasAnyRole('ADMIN','LANDLORD')")
     public boolean deleteUser(Long id){
         User toBeDeleted=userRepository.findById(id)
@@ -139,7 +208,9 @@ public class UserService implements UserDetailsService {
 
             }
 
-        userRepository.deleteById(toBeDeleted.getId());
+            //Enabled soft delete
+        toBeDeleted.setStatus(UserStatus.INACTIVE);
+            userRepository.save(toBeDeleted);
         return true;
     }
 
