@@ -49,16 +49,34 @@ public class JWTUtil {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList()));
 
+        claims.put("type","access");
+
         return createToken(claims,userDetails.getUsername(), jwtProperties.getAccessTokenExpiration());
     }
 
     //Generate a refresh token(usually no roles needed)
+//    public String generateRefreshToken(UserDetails userDetails) {
+//        return createToken(Collections.emptyMap(), userDetails.getUsername(), jwtProperties.getRefreshTokenExpiration());
+//    }
+
     public String generateRefreshToken(UserDetails userDetails) {
-        return createToken(Collections.emptyMap(), userDetails.getUsername(), jwtProperties.getRefreshTokenExpiration());
+        Map<String,Object> claims = new HashMap<>();
+        claims.put("type","refresh");
+
+        return createToken(
+                claims,
+                userDetails.getUsername(),
+                jwtProperties.getRefreshTokenExpiration()
+        );
     }
+
 
     public String extractUsername(String token){
         return extractAllClaims(token).getSubject(); //subject=username/email
+    }
+
+    public String extractTokenType(String token){
+        return extractAllClaims(token).get("type", String.class);
     }
 
     public boolean validateToken(String token,UserDetails userDetails){
@@ -83,7 +101,7 @@ public class JWTUtil {
         return Jwts.parserBuilder() //Gets a parser that understands my tokens
                 .setSigningKey(secretKey) //Tells the parser which key to use in verifying the signature
                 .build()
-                .parseClaimsJws(token) //Verifies token integrity and signature
-                .getBody(); //Used together with getSubject to get who the token belongs to
+                .parseClaimsJws(token) //Verifies token integrity and signature/checks if token is valid
+                .getBody(); //Used together with getSubject to get who the token belongs to(the username)
     }
 }

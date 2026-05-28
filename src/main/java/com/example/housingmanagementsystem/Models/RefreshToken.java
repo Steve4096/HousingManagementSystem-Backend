@@ -22,8 +22,8 @@ public class RefreshToken {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Column(nullable = false,unique = true,length = 500)
-    private String token;
+    @Column(nullable = false,length = 500)
+    private String tokenHash;
 
     @CreatedDate
     @Column(nullable = false,name = "created_at")

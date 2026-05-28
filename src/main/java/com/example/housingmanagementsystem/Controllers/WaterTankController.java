@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/water-tanks")
+@RequestMapping("/api/water-tank")
 @RequiredArgsConstructor
 public class WaterTankController {
 

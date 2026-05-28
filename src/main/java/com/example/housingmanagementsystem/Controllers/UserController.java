@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,34 +21,33 @@ public class UserController {
 
     private final UserService userService;
 
-    //@PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/registerUser")
     public ResponseEntity<UserResponseDTO> registerUser(@Valid @RequestBody UserRegistrationDTO registrationDTO){
        // return ResponseEntity.ok().body(userService.registerUser(registrationDTO));
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.registerUser(registrationDTO));
     }
 
-    //@PreAuthorize("hasAnyRole('ADMIN','LANDLORD')")
+    @PreAuthorize("hasAnyRole('ADMIN','LANDLORD')")
     @PostMapping("/registerTenant")
     public ResponseEntity<UserResponseDTO> registerTenant(@Valid @RequestBody TenantRegistrationDTO registrationDTO){
         //return ResponseEntity.ok().body(userService.registerTenant(registrationDTO));
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.registerTenant(registrationDTO));
     }
 
-    //@PreAuthorize("hasAnyRole('ADMIN','LANDLORD','USER')")
-    //@PreAuthorize("#id==authentication.principal.id or hasRole('ADMIN')")
+    @PreAuthorize("#id==authentication.principal.id or hasRole('ADMIN')")
     @PatchMapping("/{id}")
     public ResponseEntity<UserResponseDTO> updateUserDetails(@PathVariable Long id, @Valid @RequestBody UserUpdateDTO userUpdateDTO){
         return ResponseEntity.ok(userService.updateUserDetails(id, userUpdateDTO));
     }
 
-    // @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<List<UserResponseDTO>> fetchAll(){
         return ResponseEntity.ok().body(userService.fetchAllUsers());
     }
 
-    // @PreAuthorize("hasAnyRole('ADMIN','LANDLORD')")
+    @PreAuthorize("hasAnyRole('ADMIN','LANDLORD')")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Long id){
         boolean deleted=userService.deleteUser(id);
