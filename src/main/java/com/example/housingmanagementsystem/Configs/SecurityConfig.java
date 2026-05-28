@@ -9,6 +9,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 @Configuration
 @EnableMethodSecurity //Enables @PreAuthorize annotations
@@ -17,7 +18,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity,JWTAuthenticationFilter jwtAuthenticationFilter) throws Exception{
         httpSecurity
-                .csrf(csrf->csrf.disable())
+                .csrf(csrf->csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
 
                 //Determines which methods are open vs protected
                 .authorizeHttpRequests(auth->auth
@@ -29,21 +30,9 @@ public class SecurityConfig {
 //                                ).permitAll()
 
                         //Open URLs/Public endpoints(no authentication required)
-                       // .requestMatchers("/api/auth/**").permitAll() //login,refresh
+                        .requestMatchers("/api/auth/**").permitAll() //login,refresh
 
-                        //Methods/routes only accessible by admin
-                                //.requestMatchers("/api/**").hasRole("ADMIN")
-
-                        //Methods accessible by admin and landlord
-                               // .requestMatchers("/api/**").hasAnyRole("ADMIN","LANDLORD")
-
-                        //Methods accessible by admins,landlords and users
-                               // .requestMatchers("/api/").hasAnyRole("ADMIN","LANDLORD","USER")
-
-                        //.anyRequest().authenticated() //everything else needs a token
-
-                        //Temporarily disable spring security for all endpoints for easier testing
-                                .anyRequest().permitAll()
+                        .anyRequest().authenticated() //everything else needs a token
                         )
 
                 //Tells spring security not to create or use any HTTP sessions

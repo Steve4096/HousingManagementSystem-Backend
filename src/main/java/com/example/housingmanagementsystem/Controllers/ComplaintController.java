@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/complaints")
+@RequestMapping("/api/complaint")
 @RequiredArgsConstructor
 public class ComplaintController {
 
@@ -63,6 +63,7 @@ public class ComplaintController {
     }
 
     @PatchMapping("/{id}")
+    @PreAuthorize("#id==authentication.principal.id or hasRole('ADMIN')")
     public ResponseEntity<ComplaintResponseDTO> editComplaint(@PathVariable Long id, @RequestBody ComplaintUpdateDTO complaintUpdateDTO){
         return ResponseEntity.ok(complaintService.editComplaint(id,complaintUpdateDTO));
     }

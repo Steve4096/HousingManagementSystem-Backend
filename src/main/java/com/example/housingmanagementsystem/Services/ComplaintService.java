@@ -28,7 +28,6 @@ public class ComplaintService {
     private final ComplaintRepository complaintRepository;
     private final ComplaintMapper complaintMapper;
     private final UserRepository userRepository;
-    //private final UserService userService;
 
     public ComplaintResponseDTO saveComplaint(ComplaintFillingDTO complaintFillingDTO){
         CustomUserDetails userDetails=(CustomUserDetails) SecurityContextHolder.getContext()
